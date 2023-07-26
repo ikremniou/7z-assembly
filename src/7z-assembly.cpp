@@ -55,5 +55,15 @@ STDAPI_LIB SetCaseSensitive(Int32 caseSensitive) {
 }
 
 STDAPI_LIB GetModuleProp(PROPID propID, PROPVARIANT* value) {
+  switch (propID) {
+    case NModulePropID::EEnum::kInterfaceType:
+        value->vt = VT_UI4;
+        value->uiVal = 0;
+        return S_OK;
+    case NModulePropID::EEnum::kVersion:
+        value->vt = VT_UI4;
+        value->uiVal = 123;
+        return S_OK;
+  }
   return S_OK;
 }
