@@ -1,6 +1,11 @@
 #include <gtest/gtest.h>
+
+#define TESTS
 #include "../src/7z-assembly.h"
 
-TEST(Assembly, BasicDefault) {
+using namespace std;
+
+TEST(Assembly, BasicDefault)
+{
     say_hello();
 }

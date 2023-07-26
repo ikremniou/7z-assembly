@@ -16,9 +16,14 @@ _Pragma("GCC diagnostic pop")
 #define Z7_PURE_INTERFACES_END
 #endif
 
-#define Z7_DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
-  EXTERN_C const GUID name; \
-  EXTERN_C const GUID name = { l, w1, w2, { b1, b2, b3, b4, b5, b6, b7, b8 } }
+#if defined TESTS
+    #define Z7_DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
+      EXTERN_C const GUID name;
+#else
+    #define Z7_DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
+      EXTERN_C const GUID name; \
+      EXTERN_C const GUID name = { l, w1, w2, { b1, b2, b3, b4, b5, b6, b7, b8 } }
+#endif
 
 #define Z7_DECLSPEC_NOVTABLE __declspec(novtable)
 

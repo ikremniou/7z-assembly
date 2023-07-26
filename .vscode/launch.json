@@ -1,0 +1,15 @@
+{
+    "configurations": [
+        {
+            "name": "Debug 7zFM",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "C:\\Program Files\\7-Zip\\7zFM.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "console": "internalConsole"
+        }
+    ],
+}
