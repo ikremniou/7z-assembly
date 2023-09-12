@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(7z-sample-plugin VERSION 0.1.0 LANGUAGES CXX)
 
-add_library(7z-assembly SHARED ./src/7z-assembly.cpp)
+set(CMAKE_CXX_STANDARD 17) 
+add_library(7z-assembly SHARED ./src/7z-assembly.cc ./src/utils.cc ./src/hashers/hashers.cc)
 
 include(FetchContent)
 FetchContent_Declare(

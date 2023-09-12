@@ -6,6 +6,8 @@
 #include <combaseapi.h>
 #include "ICoder.h"
 #include "MyTypes.h"
+#include "MyCom.h"
+#include "IArchive.h"
 #include "LibExport.h"
 
 #endif // PLUGIN_EXPORT_H_
