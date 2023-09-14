@@ -26,4 +26,10 @@ HRESULT SetVariant(unsigned int uint_prop, PROPVARIANT* value) noexcept {
   return S_OK;
 }
 
+HRESULT SetVariant(ULONGLONG ull_value, PROPVARIANT* value) noexcept {
+     value->vt = VT_UI8;
+     value->uhVal.QuadPart = ull_value;
+     return S_OK;
+}
+
 }  // namespace utils

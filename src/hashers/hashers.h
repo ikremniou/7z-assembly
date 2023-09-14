@@ -2,6 +2,7 @@
 #define HASHERS_HASHERS_H_
 
 #include "../plugin/Export.h"
+#include "../utils.h"
 
 namespace hashers {
 class HashersImpl : public IHashers, public CMyUnknownImp {

@@ -122,13 +122,13 @@ It is considered that different formats will have different implementations, how
 This function returns the metadata about specific archive format.
 1. First parameter is used to specify the index of the archiver format. Top index is resolved by `GetNumberOfMethods`.
 2. Second parameter is the one of the following values:
-   - *kID*(0) - TBA
-   - *kName*(1) - TBA
-   - *kDecoder*(2) - expects the binary GUID of the decoder as string
-   - *kEncoder*(3) - expects the binary GUID of the encoder as string.
-   - *kPackStreams*(4) - TBA
-   - *kUnpackStreams*(5) - TBA
-   - *kDescription*(6) - TBA
+   - *kID*(0) - expect the VT_UI8 as id of the archive format(It used internally by the plugin host like checking the version of the "interface" where values like `kName` wont be queried if `kID` is not supported)
+   - *kName*(1) - expect the VT_BSTR as name of the archiver format. For example, name is displayed in the `Options` dialog in File Manager.
+   - *kDecoder*(2) - expects the binary GUID of the decoder as VT_BSTR
+   - *kEncoder*(3) - expects the binary GUID of the encoder as VT_BSTR.
+   - *kPackStreams*(4) - the VT_UI4 number of pack streams(threads) that can be utilized to pack the data.
+   - *kUnpackStreams*(5) - the VT_UI4 number of unpack streams(threads) that can be used to unpack the data.
+   - *kDescription*(6) - the description of the archive format. Displayed in the FileManager `Options` dialog box.
    - *kDecoderIsAssigned*(7) - TBA
    - *kEncoderIsAssigned*(8) - TBA
    - *kDigestSize*(9) - TBA
@@ -147,16 +147,16 @@ This function returns the object behind the `IHashers` interface. This interface
 
 This function returns the metadata about Handlers(TBA). The following properties can be queried:
 
-1. kName - expects the name of the Handler as VT_BSTR
-2. kClassID - expects the class id of Handler as VT_BSTR binary GUID
-3. kExtension - TBA
-4. kAddExtension - TBA
-5. kUpdate - TBA
-6. kKeepName - TBA
-7. kSignature - TBA
-8. kMultiSignature - TBA
-9. kSignatureOffset - TBA
-10. kAltStreams - TBA
-11. kNtSecure - TBA
-12. kFlags - TBA
-13. kTimeFlags - TBA
+1.  *kName* - expects the name of the Handler as VT_BSTR
+2.  *kClassID* - expects the class id of Handler as VT_BSTR binary GUID
+3.  *kExtension* - TBA
+4.  *kAddExtension* - TBA
+5.  *kUpdate* - TBA
+6.  *kKeepName* - TBA
+7.  *kSignature* - if archive has a [signature](https://en.wikipedia.org/wiki/List_of_file_signatures), it will be verified by the plugin host before invoking plugins logic. The VT_BSTR is expected in return. 
+8.  *kkMultiSignature* - expects VT_BSTR. First byte should be the length of the sub-signature, then signature with specified length follows the first byte, and so on.
+9.  *kSignatureOffset* - TBA
+10. *kAltStreams* - TBA
+11. *kNtSecure* - TBA
+12. *kFlags* - TBA
+13. *kTimeFlags* - TBA
