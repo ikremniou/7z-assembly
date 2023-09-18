@@ -9,6 +9,7 @@ HRESULT SetVariant(bool bool_prop, PROPVARIANT* value) noexcept;
 HRESULT SetVariant(wchar_t* str_prop, PROPVARIANT* value) noexcept;
 HRESULT SetVariant(unsigned int uint_prop, PROPVARIANT* value) noexcept;
 HRESULT SetVariant(ULONGLONG ull_value, PROPVARIANT* value) noexcept;
+HRESULT SetMockTime(PROPVARIANT* value) noexcept;
 }  // namespace utils
 
 #endif  // UTILS_H_

@@ -19,8 +19,6 @@ STDAPI_LIB CreateDecoder(UInt32 index, const GUID* iid, void** outObject);
 STDAPI_LIB CreateEncoder(UInt32 index, const GUID* iid, void** outObject);
 STDAPI_LIB GetHashers(IHashers** hashers);
 STDAPI_LIB SetCodecs(ICompressCodecsInfo* compressCodecsInfo);
-STDAPI_LIB SetLargePageMode();
-STDAPI_LIB SetCaseSensitive(Int32 caseSensitive);
 STDAPI_LIB GetModuleProp(PROPID propID, PROPVARIANT* value);
 
 EXPORTED void say_hello();

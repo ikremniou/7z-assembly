@@ -22,7 +22,11 @@ STDAPI_LIB CreateObject(const GUID* clsid, const GUID* iid, void** outObject) {
   if (*clsid == SzHandlerGuid) {
     // create archive object to read file.
     if (*iid == IID_IInArchive) {
-        *outObject = new archive::SzInArchive();
+        IUnknown* sz_in_archive = new archive::SzInArchive();
+        // sz_in_archive->QueryInterface(GUID(), nullptr);
+        sz_in_archive->AddRef();
+        *outObject = sz_in_archive;
+        
     }
   }
   return S_OK;
@@ -119,14 +123,6 @@ STDAPI_LIB GetHashers(IHashers** hashers) {
 }
 
 STDAPI_LIB SetCodecs(ICompressCodecsInfo* compressCodecsInfo) {
-  return S_OK;
-}
-
-STDAPI_LIB SetLargePageMode() {
-  return S_OK;
-}
-
-STDAPI_LIB SetCaseSensitive(Int32 caseSensitive) {
   return S_OK;
 }
 

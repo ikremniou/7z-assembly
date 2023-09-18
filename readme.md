@@ -1,5 +1,5 @@
 # How to create a 7-Zip(7z) archiver plugins
-This repository is a light documentation of the 7-zip plugin system. It includes two examples of the archiver plugins:
+This repository is a light documentation of the 7-zip plugin system. We will develop 2 archiver handlers to extend the 7-zip File Manager. Below you can see some of the properties of the archiver:
 
 Criteria | The SZ | The SZE
 -------- | ------ | -------
@@ -7,7 +7,7 @@ Name | Sample zip archiver | Sample zip archiver extended
 Format | Returns two entries. First one is a text file named `sample.txt` with a text `sample`. Seconds is a `child.sz` archive, that creates endless recursion. | Files are encoded into the "archive" using text format: `{fileName}.{fileExtension}-{fileContent}|{fileName}.{fileExtension}-{fileContent}.....`
 Extensions | .sz | .sze, .szex
 
-All of the code can be found in the `.src` folder.
+The SZ format will be based on the simples example possible. For SZE we will experiment with the 7-zip flags and archiver parameters and interfaces. All of the code can be found in the `.src` folder.
 
 ## Initial setup
 
@@ -58,10 +58,21 @@ STDAPI_LIB GetModuleProp(PROPID propID, PROPVARIANT *value);
 
 I have defined the `STDAPI_LIB` as `as` to make them exported from the library. I am using the cmake `GENERATE_EXPORT_HEADER` function to define the `LIB_EXPORT` macro.
 
+### How to compile 7-zip components
+
+During my work on this documentation I compiled the File Manager to be able to see call stack and to debug the plugin system. This guide will allow you to compile any components you want to explore.
+
+1. Navigate to the `CPP` folder and find `Build.mak`. This is base make file that is referenced by the other components. Open it.
+2. Find `CFLAGS = $(CFLAGS) -nologo` ... line. Add `/Zi` compiler flag at the end (It instructs compiler to create a symbols file).
+4. Find `LFLAGS = $(LFLAGS) -nologo -OPT:REF -OPT:ICF -INCREMENTAL:NO` and add `/DEBUG` is linker flag.
+5. Find `CFLAGS_O1`, `CFLAGS_O2`, and disable optimization flags `-Ox` with `-Od`
+6. Go to any component you want to compile. For example `CPP\7zip\UI\FileManager\`, open Visual Studio console there and type `nmake`. Should work without parameters.
+7. Build process will create `x64` folder. Open it and find required component. Copy it to installed 7-zip version. Done.
+
 ## Understanding the 7-zip plugin system
 ### Introduction
 
-In this documentation we will examine the **23.01** version of the 7-Zip plugin system. It may not work with the older versions. So if you would like develop the plugins for the older versions you will not find the solution in this repository.
+In this documentation we will examine the **23.01** version of the 7-Zip plugin system used in File Manager. It may not work with the older versions. So if you would like develop the plugins for the older versions you will not find the solution in this repository.
 
 Once we have all of the declarations in place we can create a mock definitions for the required API. In scope of my research I used the CMake install command to install the plugin `.dll` to the `Formats` directory on the 7-zip root. At the same time I used the VSCode launch configuration to launch the the **7-Zip File Manager** to debug and test the sample plugins:
 ```json
@@ -76,6 +87,7 @@ Once we have all of the declarations in place we can create a mock definitions f
 ```
 
 This way you can debug the plugin system of the 7-Zip and also test the sample plugins developed in this repository.
+
 ### In-place Plugins
 The plugins infrastructure plays important role in 7-Zip. Looking through the source code we can see that 7z.dll by itself is a plugin that is loaded by the File Manager or command line interface to provide implementation for supported archive formats. The formats entry points are called `Handlers` and are located under the `CPP/7zip/Archive` folder. For example, this peace of code is from end of the `GzHandler.cpp`:
 ```cpp
@@ -111,6 +123,8 @@ This function is called first to define if dll is compatible with the current ve
 
 #### `GetNumberOfMethods(UInt32* numCodecs)*`
 
+1. `numCodecs` - the number of 
+
 This function is called by the plugin host to get the number of supported archive formats.
 
 It is considered that different formats will have different implementations, however, it is possible to have only one implementation for multiple formats, breaking the single responsibility principle. In our case we should return `2` as we have two archive types `sz` and `sze`. Once again they are different archiver formats, not sub-types, not related. Later on the plugin host will refer to the formats using its number. For example, to get metadata about first archive format (`sz`) it will send its index(`0`) to the functions that will follow.
@@ -138,25 +152,64 @@ This function returns the metadata about specific archive format.
 
 #### `GetHashers(IHashers** hashers)`
 
+1. `hashers` - the plugin should set this argument with the object implementing `IHashers` - the collection of hashers available in plugin. If will be queried on demand.
+
 This function returns the object behind the `IHashers` interface. This interface is used to enumerate `IHasher` instances. The following 3 functions must be defined in order to implement `IHashers`:
 1. `HashersImpl::CreateHasher(UInt32 index, IHasher** hasher) noexcept` - creates hasher with specified `index`.
 2. `HashersImpl::GetHasherProp(UInt32 codecIndex, PROPID propID, PROPVARIANT* value) noexcept` - gets metadata about the Hasher using its index(`codecIndex`) and metadata property id(`propID`).
 3. `HashersImpl::GetNumHashers() noexcept` - returns the number of Hashers supported by the plugin.
 
+> The methods implementation is optional. If none of your handler supports hashing there is no reason to implement it.
+
 #### `GetHandlerProperty(PROPID propID, PROPVARIANT* value)`
 
-This function returns the metadata about Handlers(TBA). The following properties can be queried:
+1. `propID` - represents the ID of the property to retrieve. It can be one of the following values:
+    - *`kName`* - expects the name of the Handler as VT_BSTR
+    - *`kClassID`* - expects the class id of Handler as VT_BSTR binary GUID
+    - *`kExtension`* - expect the extension as VT_BSTR, that will be associated with the Handler.
+    - *`kAddExtension`* - allows to specify additional extensions supported by the Handler, separated by space symbol(` `)
+    - *`kUpdate`* - return variant bool `true` if it is possible to update the archive, otherwise `false`;
+    - *`kKeepName`* - TBA
+    - *`kSignature`* - if archive has a [signature](https://en.wikipedia.org/wiki/List_of_file_signatures), it will be verified by the plugin host before invoking plugins logic. The binary VT_BSTR is expected in return. 
+    - *`kkMultiSignature`* - if archive has multiple signatures it expects VT_BSTR here. First byte should be the length of the sub-signature, then signature with specified length follows, and so on.
+    - *`kSignatureOffset`* - The offset of the file signature in bytes.
+    - *`kAltStreams`* - TBA
+    - *`kNtSecure`* - TBA
+    - *`kFlags`* - Flags that define the capabilities that are implemented by the handler. **TBA**
+    - *`kTimeFlags`* - TBA
+2. `value` - represents the property value to set.
 
-1.  *kName* - expects the name of the Handler as VT_BSTR
-2.  *kClassID* - expects the class id of Handler as VT_BSTR binary GUID
-3.  *kExtension* - TBA
-4.  *kAddExtension* - TBA
-5.  *kUpdate* - TBA
-6.  *kKeepName* - TBA
-7.  *kSignature* - if archive has a [signature](https://en.wikipedia.org/wiki/List_of_file_signatures), it will be verified by the plugin host before invoking plugins logic. The VT_BSTR is expected in return. 
-8.  *kkMultiSignature* - expects VT_BSTR. First byte should be the length of the sub-signature, then signature with specified length follows the first byte, and so on.
-9.  *kSignatureOffset* - TBA
-10. *kAltStreams* - TBA
-11. *kNtSecure* - TBA
-12. *kFlags* - TBA
-13. *kTimeFlags* - TBA
+This function returns the metadata about Handlers - the actual implementation of the compression algorithms.
+
+#### `SetLargePageMode()`
+Called to notify if [Large Page Mode](https://learn.microsoft.com/en-us/windows/win32/memory/large-page-support) is enabled. Can be enabled by the CLI option, or special WinAPI call from plugin host.
+
+> This method is optional to implement.
+
+#### `SetCaseSensitive(Int32 caseSensitive)`
+
+1. `caseSensitive` - the 'bool' argument specifies whether case sensitivity is enabled. If it equals `0` then it is `false`, otherwise it is `true`.
+
+Adjusts the [Case Sensitivity](https://learn.microsoft.com/en-us/windows/wsl/case-sensitivity). It looks like can only be set from the CLI option. Method will be ignored if CLI option is not set.
+
+> This method is optional to implement
+
+#### `SetCodecs(ICompressCodecsInfo* compressCodecsInfo)`
+
+1. `compressCodecsInfo` - the interface to the compression codecs implemented by 7-zip.
+
+Plugin host calls this method to set compression codecs for the plugin. This allows using build-in [In-Place](#in-place-plugins) compression algorithms.
+
+> The method is optional to implement
+
+#### `CreateDecoder(UInt32 index, const GUID* iid, void** outObject)`
+
+TBA
+
+> The method is optional if you developing plugin for File Manager
+
+#### `CreateEncoder(UInt32 index, const GUID* iid, void** outObject);`
+
+TBA
+
+> The method is optional if you developing plugin for File Manager

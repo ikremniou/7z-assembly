@@ -5,6 +5,7 @@
 
 namespace archive {
 class SzInArchive : public CMyUnknownImp, public IInArchive {
+public:
   Z7_IFACES_IMP_UNK_1(IInArchive);
 };
 }  // namespace archive
