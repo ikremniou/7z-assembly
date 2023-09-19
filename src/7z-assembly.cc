@@ -1,21 +1,19 @@
 #include "7z-assembly.h"
 #include <iostream>
+#include "./archive/sz-archive.h"
 #include "./hashers/hashers.h"
 #include "utils.h"
-#include "./archive/sz-archive.h"
 
 // {1e3b7f26-3b1b-4257-a6fa-9c62d67c695e}
 Z7_DEFINE_GUID(SzHandlerGuid, 0x1e3b7f26, 0x3b1b, 0x4257, 0xa6, 0xfa, 0x9c,
                0x62, 0xd6, 0x7c, 0x69, 0x5e);
 
 STDAPI_LIB CreateObject(const GUID* clsid, const GUID* iid, void** outObject) {
-  if (*clsid == SzHandlerGuid) {
-    if (*iid == IID_IInArchive) {
-        IUnknown* sz_in_archive = new archive::SzInArchive();
-        sz_in_archive->AddRef();
-        *outObject = sz_in_archive;
-    }
+  if (*clsid == SzHandlerGuid && *iid == IID_IInArchive) {
+    *outObject = new archive::SzInArchive();
   }
+
+  static_cast<IUnknown*>(*outObject)->AddRef();
   return S_OK;
 }
 

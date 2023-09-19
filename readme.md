@@ -223,16 +223,10 @@ Adjusts the [Case Sensitivity](https://learn.microsoft.com/en-us/windows/wsl/cas
 Plugin host calls this method to set compression codecs for the plugin. This allows using build-in [In-Place](#in-place-plugins) compression algorithms.
 
 #### `CreateDecoder(UInt32 index, const GUID* iid, void** outObject)`*
-
-TBA
-
 > [!NOTE]
 > The method is optional if you developing plugin for File Manager
 
 #### `CreateEncoder(UInt32 index, const GUID* iid, void** outObject);`*
-
-TBA
-
 > [!NOTE]
 > The method is optional if you developing plugin for File Manager
 
@@ -240,17 +234,15 @@ TBA
 
 Here we will review initial infrastructure to create handlers for `sz` and `sze` sample archives.
 
-And finally creating object using [CreateObject](#createobjectconst-guid-clsid-const-guid-iid-void-outobject) method.
+And finally plugin host will create InArchive object using [CreateObject](#createobjectconst-guid-clsid-const-guid-iid-void-outobject) method.
 
 ``` C++
 STDAPI_LIB CreateObject(const GUID* clsid, const GUID* iid, void** outObject) {
-  if (*clsid == SzHandlerGuid) {
-    if (*iid == IID_IInArchive) {
-        IUnknown* sz_in_archive = new archive::SzInArchive();
-        sz_in_archive->AddRef();
-        *outObject = sz_in_archive;
-    }
+  if (*clsid == SzHandlerGuid && *iid == IID_IInArchive) {
+    *outObject = new archive::SzInArchive();
   }
+
+  static_cast<IUnknown*>(*outObject)->AddRef();
   return S_OK;
 }
 ```
