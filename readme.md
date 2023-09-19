@@ -110,7 +110,10 @@ At the end, the macro `REGISTER_ARC_*` is expanded to the definition of the stru
 ### Dynamic Plugins
 The dynamic plugins are the DLLs that export functions defined in the `Archine2.def`. Looking ahead, not all of the function defined are required to be implemented. Usually 7-Zip will fallback to the default values for the most of the callbacks. The following functions are defined in the `Archine2.def`:
 
-#### `GetModuleProp(PROPID propID, PROPVARIANT* value)*`
+> [!NOTE]
+> Methods marked with `*` are optional to implement.
+
+#### `GetModuleProp(PROPID propID, PROPVARIANT* value)`*
 
 1. `propID` - the ID of the property to retrieve. Can be one of the following values:
    - *`kInterfaceType(0)`* - if VT_UI4 `0` is returned than the `IUnknown` inside of your module should not use the virtual destructor, otherwise it does (VT_UI4 `1` returned).
@@ -121,17 +124,19 @@ This function is called first to define if dll is compatible with the current ve
 
 By default the 7-zip will expect that the module will return `0` for `kInterfaceType` on Windows and Linux(starting from `23.01`). The main idea is to have match between the plugin host destruction model and the module. If destination models does not match the plugin is considered not compatible with the plugin host.
 
-> The implementation can be omitted. In this case the version of the plugin will be `0`, and the plugin will be considered compatible with the plugin host.
+> [!NOTE]
+> If implementation is omitted the version of the plugin will be `0`, and the plugin will be considered compatible with the plugin host.
 
-#### `GetNumberOfMethods(UInt32* numCodecs)`
+#### `GetNumberOfMethods(UInt32* numCodecs)`*
 
 1. `numCodecs` - the number of codecs to return.
 
 This function is called by the plugin host to get the number of supported codecs. Coders are not used when working with archives in File Manager, hance for FM plugins we can omit implementation.
 
-> The implementation can be omitted. Default index will be set to 0.
+> [!NOTE]
+> If method is not implemented, the default index will be set to 0.
 
-#### `GetMethodProperty(UInt32 codecIndex, PROPID propID, PROPVARIANT* value)`
+#### `GetMethodProperty(UInt32 codecIndex, PROPID propID, PROPVARIANT* value)`*
 
 1. *`codecIndex`* - is used to specify the index of the archiver coder. Top index is resolved by [`GetNumberOfMethods`](#getnumberofmethodsuint32-numcodecs).
 2. *`propID`* - is the one of the following values:
@@ -151,6 +156,7 @@ This function is called by the plugin host to get the number of supported codecs
 
 This function returns the metadata about specific archive coder.
 
+> [!NOTE]
 > Invoked only if `GetNumberOfMethods` is implemented and returned value that is greater then 0.
 
 #### `GetNumberOfFormats(UINT32 *numFormats)`
@@ -189,7 +195,7 @@ This function returns the metadata about archive format(handler).
 > [!IMPORTANT]
 > You should `AddRef` objects before you return them to the plugin host.
 
-#### `GetHashers(IHashers** hashers)`
+#### `GetHashers(IHashers** hashers)`*
 
 1. `hashers` - the plugin should set this argument with the object implementing `IHashers` - the collection of hashers available in plugin. If will be queried on demand.
 
@@ -198,37 +204,55 @@ This function returns the object behind the `IHashers` interface. This interface
 2. `HashersImpl::GetHasherProp(UInt32 codecIndex, PROPID propID, PROPVARIANT* value) noexcept` - gets metadata about the Hasher using its index(`codecIndex`) and metadata property id(`propID`).
 3. `HashersImpl::GetNumHashers() noexcept` - returns the number of Hashers supported by the plugin.
 
-> The methods implementation is optional. If none of your formats or coders supports hashing there is no reason to implement it.
+> [!NOTE]
+> If none of your formats or coders supports hashing there is no reason to implement it.
 
-#### `SetLargePageMode()`
+#### `SetLargePageMode()`*
 Called to notify if [Large Page Mode](https://learn.microsoft.com/en-us/windows/win32/memory/large-page-support) is enabled. Can be enabled by the CLI option, or special WinAPI call from plugin host.
 
-> This method is optional to implement.
-
-#### `SetCaseSensitive(Int32 caseSensitive)`
+#### `SetCaseSensitive(Int32 caseSensitive)`*
 
 1. `caseSensitive` - the 'bool' argument specifies whether case sensitivity is enabled. If it equals `0` then it is `false`, otherwise it is `true`.
 
 Adjusts the [Case Sensitivity](https://learn.microsoft.com/en-us/windows/wsl/case-sensitivity). It looks like can only be set from the CLI option. Method will be ignored if CLI option is not set.
 
-> This method is optional to implement
-
-#### `SetCodecs(ICompressCodecsInfo* compressCodecsInfo)`
+#### `SetCodecs(ICompressCodecsInfo* compressCodecsInfo)`*
 
 1. `compressCodecsInfo` - the interface to the compression codecs implemented by 7-zip.
 
 Plugin host calls this method to set compression codecs for the plugin. This allows using build-in [In-Place](#in-place-plugins) compression algorithms.
 
-> The method is optional to implement
-
-#### `CreateDecoder(UInt32 index, const GUID* iid, void** outObject)`
+#### `CreateDecoder(UInt32 index, const GUID* iid, void** outObject)`*
 
 TBA
 
+> [!NOTE]
 > The method is optional if you developing plugin for File Manager
 
-#### `CreateEncoder(UInt32 index, const GUID* iid, void** outObject);`
+#### `CreateEncoder(UInt32 index, const GUID* iid, void** outObject);`*
 
 TBA
 
+> [!NOTE]
 > The method is optional if you developing plugin for File Manager
+
+## Implementation
+
+Here we will review initial infrastructure to create handlers for `sz` and `sze` sample archives.
+
+And finally creating object using [CreateObject](#createobjectconst-guid-clsid-const-guid-iid-void-outobject) method.
+
+``` C++
+STDAPI_LIB CreateObject(const GUID* clsid, const GUID* iid, void** outObject) {
+  if (*clsid == SzHandlerGuid) {
+    if (*iid == IID_IInArchive) {
+        IUnknown* sz_in_archive = new archive::SzInArchive();
+        sz_in_archive->AddRef();
+        *outObject = sz_in_archive;
+    }
+  }
+  return S_OK;
+}
+```
+
+### Implementation of the SZ Archive

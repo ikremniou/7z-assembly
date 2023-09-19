@@ -11,7 +11,6 @@ STDAPI_LIB GetHandlerProperty(PROPID propID, PROPVARIANT* value);
 STDAPI_LIB GetNumberOfFormats(UINT32* numFormats);
 STDAPI_LIB GetHandlerProperty2(UInt32 formatIndex, PROPID propID,
                                PROPVARIANT* value);
-STDAPI_LIB GetIsArc(UInt32 formatIndex, Func_IsArc* isArc);
 STDAPI_LIB GetNumberOfMethods(UInt32* numCodecs);
 STDAPI_LIB GetMethodProperty(UInt32 codecIndex, PROPID propID,
                              PROPVARIANT* value);
