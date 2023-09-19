@@ -112,57 +112,56 @@ The dynamic plugins are the DLLs that export functions defined in the `Archine2.
 
 #### `GetModuleProp(PROPID propID, PROPVARIANT* value)*`
 
-This function is called first to define if dll is compatible with the current version of the 7-Zip and to get the version of the module. In has two `PROPID` values:
-1. `progID = kInterfaceType = 0`, which expects in return `0` or `1` of unsigned 4 bytes int `VT_UI4` type. 
-   - `0` means that the `IUnknown` inside of your module should not use the virtual destructor. 
-   - `1` means that `IUnknown` inside of your module is using the virtual destructor.
-   By default the 7-zip will expect that the module will return `0` on Windows and Linux(starting from `23.01`). The main idea is to have match between the plugin host destruction model and the module. If destination models does not match the plugin is considered not compatible with the plugin host.
-2. `progID = kVersion = 1`, which expects in return the version of the module as `VT_UI4`. The usage of this number inside of the plugin host is not clearly defined.
+1. `propID` - the ID of the property to retrieve. Can be one of the following values:
+   - *`kInterfaceType(0)`* - if VT_UI4 `0` is returned than the `IUnknown` inside of your module should not use the virtual destructor, otherwise it does (VT_UI4 `1` returned).
+   - *`kVersion(1)`* - the module version as VT_UI4. Used used internally by the plugin host. 
+2. `value` - the property variant value to return.
+
+This function is called first to define if dll is compatible with the current version of the 7-Zip and to get the version of the module.
+
+By default the 7-zip will expect that the module will return `0` for `kInterfaceType` on Windows and Linux(starting from `23.01`). The main idea is to have match between the plugin host destruction model and the module. If destination models does not match the plugin is considered not compatible with the plugin host.
 
 > The implementation can be omitted. In this case the version of the plugin will be `0`, and the plugin will be considered compatible with the plugin host.
 
-#### `GetNumberOfMethods(UInt32* numCodecs)*`
+#### `GetNumberOfMethods(UInt32* numCodecs)`
 
-1. `numCodecs` - the number of 
+1. `numCodecs` - the number of codecs to return.
 
-This function is called by the plugin host to get the number of supported archive formats.
+This function is called by the plugin host to get the number of supported codecs. Coders are not used when working with archives in File Manager, hance for FM plugins we can omit implementation.
 
-It is considered that different formats will have different implementations, however, it is possible to have only one implementation for multiple formats, breaking the single responsibility principle. In our case we should return `2` as we have two archive types `sz` and `sze`. Once again they are different archiver formats, not sub-types, not related. Later on the plugin host will refer to the formats using its number. For example, to get metadata about first archive format (`sz`) it will send its index(`0`) to the functions that will follow.
-
-> The implementation can be omitted. By default the number of methods(coders) is set to `1`. Index will be set to 0.
+> The implementation can be omitted. Default index will be set to 0.
 
 #### `GetMethodProperty(UInt32 codecIndex, PROPID propID, PROPVARIANT* value)`
 
-This function returns the metadata about specific archive format.
-1. First parameter is used to specify the index of the archiver format. Top index is resolved by `GetNumberOfMethods`.
-2. Second parameter is the one of the following values:
-   - *kID*(0) - expect the VT_UI8 as id of the archive format(It used internally by the plugin host like checking the version of the "interface" where values like `kName` wont be queried if `kID` is not supported)
-   - *kName*(1) - expect the VT_BSTR as name of the archiver format. For example, name is displayed in the `Options` dialog in File Manager.
-   - *kDecoder*(2) - expects the binary GUID of the decoder as VT_BSTR
-   - *kEncoder*(3) - expects the binary GUID of the encoder as VT_BSTR.
-   - *kPackStreams*(4) - the VT_UI4 number of pack streams(threads) that can be utilized to pack the data.
-   - *kUnpackStreams*(5) - the VT_UI4 number of unpack streams(threads) that can be used to unpack the data.
-   - *kDescription*(6) - the description of the archive format. Displayed in the FileManager `Options` dialog box.
-   - *kDecoderIsAssigned*(7) - TBA
-   - *kEncoderIsAssigned*(8) - TBA
-   - *kDigestSize*(9) - TBA
-   - *kIsFilter*(10) - signals the plugin host that plugin supports filtering data streams. It can be used to pre-process data before compression. For example, you have `080204050201` sequence where you know that 0-s are always odd. You can filter them using special `-F` parameter and compress only even numbers. Same filter must be used to restore the original data.
+1. *`codecIndex`* - is used to specify the index of the archiver coder. Top index is resolved by [`GetNumberOfMethods`](#getnumberofmethodsuint32-numcodecs).
+2. *`propID`* - is the one of the following values:
+   - *`kID`*(0) - expect the *VT_UI8* as id of the archive coder(It used internally by the plugin host like checking the version of the "interface" where values like `kName` wont be queried if `kID` is not supported)
+   - *`kName`*(1) - expect the *VT_BSTR* as name of the archiver coder. For example, name is displayed in the `Options` dialog in File Manager.
+   - *`kDecoder`*(2) - expects the binary GUID of the decoder as *VT_BSTR*.
+   - *`kEncoder`*(3) - expects the binary GUID of the encoder as *VT_BSTR*.
+   - *`kPackStreams`*(4) - the *VT_UI4* number of pack streams(threads) that can be utilized to pack the data.
+   - *`kUnpackStreams`*(5) - the *VT_UI4* number of unpack streams(threads) that can be used to unpack the data.
+   - *`kDescription`*(6) - the description of the archive coder as *VT_BSTR*.
+   - *`kDecoderIsAssigned`*(7) - TBA
+   - *`kEncoderIsAssigned`*(8) - TBA
+   - *`kDigestSize`*(9) - TBA
+   - *`kIsFilter`*(10) - signals the plugin host that plugin supports filtering data streams. It can be used to pre-process data before compression. For example, you have `080204050201` sequence where you know that 0-s are always odd. You can filter them using special `-F` parameter and compress only even numbers. Same filter must be used to restore the original data.
 
-3. Third parameter is used to report back the metadata about archive format.
+3. Third parameter is used to report back the metadata about archive coder.
 
-#### `GetHashers(IHashers** hashers)`
+This function returns the metadata about specific archive coder.
 
-1. `hashers` - the plugin should set this argument with the object implementing `IHashers` - the collection of hashers available in plugin. If will be queried on demand.
+> Invoked only if `GetNumberOfMethods` is implemented and returned value that is greater then 0.
 
-This function returns the object behind the `IHashers` interface. This interface is used to enumerate `IHasher` instances. The following 3 functions must be defined in order to implement `IHashers`:
-1. `HashersImpl::CreateHasher(UInt32 index, IHasher** hasher) noexcept` - creates hasher with specified `index`.
-2. `HashersImpl::GetHasherProp(UInt32 codecIndex, PROPID propID, PROPVARIANT* value) noexcept` - gets metadata about the Hasher using its index(`codecIndex`) and metadata property id(`propID`).
-3. `HashersImpl::GetNumHashers() noexcept` - returns the number of Hashers supported by the plugin.
+#### `GetNumberOfFormats(UINT32 *numFormats)`
 
-> The methods implementation is optional. If none of your handler supports hashing there is no reason to implement it.
+1. `numFormats` - the number of archiver formats supported by the plugin.
 
-#### `GetHandlerProperty(PROPID propID, PROPVARIANT* value)`
+It is considered that different formats will have different implementations, however, it is possible to have only one implementation for multiple formats, breaking the single responsibility principle. Later on the plugin host will refer to the formats using their index(starting from `0`).
 
+#### `GetHandlerProperty2(UInt32 formatIndex, PROPID propID, PROPVARIANT* value)`
+
+1. `formatIndex` - the index of the format 
 1. `propID` - represents the ID of the property to retrieve. It can be one of the following values:
     - *`kName`* - expects the name of the Handler as VT_BSTR
     - *`kClassID`* - expects the class id of Handler as VT_BSTR binary GUID
@@ -179,7 +178,27 @@ This function returns the object behind the `IHashers` interface. This interface
     - *`kTimeFlags`* - TBA
 2. `value` - represents the property value to set.
 
-This function returns the metadata about Handlers - the actual implementation of the compression algorithms.
+This function returns the metadata about archive format(handler).
+
+#### `CreateObject(const GUID *clsid, const GUID *iid, void **outObject)`
+
+1. `clsid` - the format(handler) class id that is returned by the [GetHandlerProperty](#gethandlerproperty2uint32-formatindex-propid-propid-propvariant-value).
+2. `iid` - the id of the interface of the object to create. For example, `IID_IInArchive` - the interface used to **read** the archives. 
+3. `outObject` - the COM-way to return the reference to the created object. Assign object reference to `*outObject`.
+
+> [!IMPORTANT]
+> You should `AddRef` objects before you return them to the plugin host.
+
+#### `GetHashers(IHashers** hashers)`
+
+1. `hashers` - the plugin should set this argument with the object implementing `IHashers` - the collection of hashers available in plugin. If will be queried on demand.
+
+This function returns the object behind the `IHashers` interface. This interface is used to enumerate `IHasher` instances. The following 3 functions must be defined in order to implement `IHashers`:
+1. `HashersImpl::CreateHasher(UInt32 index, IHasher** hasher) noexcept` - creates hasher with specified `index`.
+2. `HashersImpl::GetHasherProp(UInt32 codecIndex, PROPID propID, PROPVARIANT* value) noexcept` - gets metadata about the Hasher using its index(`codecIndex`) and metadata property id(`propID`).
+3. `HashersImpl::GetNumHashers() noexcept` - returns the number of Hashers supported by the plugin.
+
+> The methods implementation is optional. If none of your formats or coders supports hashing there is no reason to implement it.
 
 #### `SetLargePageMode()`
 Called to notify if [Large Page Mode](https://learn.microsoft.com/en-us/windows/win32/memory/large-page-support) is enabled. Can be enabled by the CLI option, or special WinAPI call from plugin host.
