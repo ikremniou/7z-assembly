@@ -1,7 +1,19 @@
 #include "sz-archive.h"
+#include <unordered_map>
 #include "../utils.h"
 
 namespace archive {
+
+struct File {
+  const wchar_t* path;
+  bool is_dir;
+};
+
+File files[2] = {
+    {L"somefile.txt", false},
+    {L"somefile.sz", false},
+};
+
 HRESULT SzInArchive::Open(IInStream* stream,
                           const UInt64* maxCheckStartPosition,
                           IArchiveOpenCallback* openCallback) noexcept {
@@ -13,7 +25,7 @@ HRESULT SzInArchive::Close() noexcept {
 }
 
 HRESULT SzInArchive::GetNumberOfItems(UInt32* numItems) noexcept {
-  *numItems = 1;
+  *numItems = static_cast<UInt32>(std::size(files));
   return S_OK;
 }
 
@@ -22,11 +34,10 @@ HRESULT SzInArchive::GetProperty(UInt32 index, PROPID propID,
   switch (propID) {
     {
       case kpidPath:
-        return utils::SetVariant(L"somefile.txt", value);
+        return utils::SetVariant(files[index].path, value);
       case kpidIsDir:
-        return utils::SetVariant(false, value);
+        return utils::SetVariant(files[index].is_dir, value);
       case kpidNumSubFiles:
-        return utils::SetVariant(1u, value);
       case kpidMTime:
       case kpidIsAltStream:
       case kpidEncrypted:
@@ -53,16 +64,18 @@ HRESULT SzInArchive::Extract(
     const UInt32* indices, UInt32 numItems, Int32 testMode,
     IArchiveExtractCallback* extractCallback) noexcept {
   CMyComPtr<ISequentialOutStream> outStream;
-  RINOK(extractCallback->GetStream(*indices, &outStream, 0));
-  UInt32 size_processed;
-  outStream->Write("12345678", 8, &size_processed);
+  for (UInt32 i = 0; i < numItems; i++) {
+    RINOK(extractCallback->GetStream(*indices, &outStream, 0));
+    UInt32 size_processed;
+    outStream->Write("12345678", 8, &size_processed);
+  }
+
   return S_OK;
 }
 
 HRESULT SzInArchive::GetArchiveProperty(PROPID propID,
                                         PROPVARIANT* value) noexcept {
   switch (propID) {
-    // Open properties
     case kpidWarningFlags:
     case kpidWarning:
     case kpidErrorFlags:
@@ -72,17 +85,12 @@ HRESULT SzInArchive::GetArchiveProperty(PROPID propID,
       return S_OK;
 
     case kpidIsTree:
-      return utils::SetVariant(false, value);
     case kpidIsDeleted:
-      return utils::SetVariant(false, value);
     case kpidIsAltStream:
-      return utils::SetVariant(false, value);
     case kpidIsAux:
-      return utils::SetVariant(false, value);
     case kpidINode:
-      return utils::SetVariant(false, value);
     case kpidReadOnly:
-      return utils::SetVariant(false, value);
+      return utils::SetVariant(true, value);
 
     case kpidMainSubfile:
       return utils::SetVariant(0u, value);

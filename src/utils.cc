@@ -14,7 +14,7 @@ HRESULT SetVariant(bool bool_prop, PROPVARIANT* value) noexcept {
   return S_OK;
 }
 
-HRESULT SetVariant(wchar_t* str_prop, PROPVARIANT* value) noexcept {
+HRESULT SetVariant(const wchar_t* str_prop, PROPVARIANT* value) noexcept {
   value->vt = VT_BSTR;
   value->bstrVal = SysAllocString(str_prop);
   return S_OK;

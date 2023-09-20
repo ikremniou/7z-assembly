@@ -28,16 +28,12 @@ STDAPI_LIB GetHandlerProperty2(UInt32 formatIndex, PROPID propID,
       return utils::SetVariant(L"sz", value);
     case NArchive::NHandlerPropID::kAddExtension:
       return utils::SetVariant(L"", value);
-    case NArchive::NHandlerPropID::kUpdate:
-      return utils::SetVariant(false, value);
     case NArchive::NHandlerPropID::kFlags:
       return utils::SetVariant(0u, value);
+    case NArchive::NHandlerPropID::kUpdate:
     case NArchive::NHandlerPropID::kTimeFlags:
-      return utils::SetVariant(0u, value);
     case NArchive::NHandlerPropID::kSignature:
-      return utils::SetVariant(L"", value);
     case NArchive::NHandlerPropID::kMultiSignature:
-      return utils::SetVariant(L"", value);
     case NArchive::NHandlerPropID::kSignatureOffset:
       return S_OK;
     default:

@@ -248,3 +248,33 @@ STDAPI_LIB CreateObject(const GUID* clsid, const GUID* iid, void** outObject) {
 ```
 
 ### Implementation of the SZ Archive
+
+The implementation of the SZ sample archive can be found in [sz-archive.h](./src/archive/sz-archive.h) and [sz-archive.cc](./src/archive/sz-archive.cc). First we define the `SzInArchive` that will be created by the [CreateObject](#createobjectconst-guid-clsid-const-guid-iid-void-outobject) function. To be able to open and read archives the archiver must implement the following:
+1. The `IInArchive` interface.
+2. The `IUnknown` interface.
+
+I used the macro `Z7_IFACES_IMP_UNK_1` to create a declarations for `IUnknown` and `IInArchive` interfaces, and inherited from `CMyUnknownImpl` to provide definitions for `IUnknown`.
+
+<details>
+<summary>Definition of the <b>SzInArchive</b></summary>
+
+```C++
+class SzInArchive : public CMyUnknownImp, public IInArchive {
+public:
+  Z7_IFACES_IMP_UNK_1(IInArchive);
+};
+```
+</details>
+
+<br>
+
+Then we need to create implementation for `IInArchive` interface:
+
+1. `GetNumberOfItems` - returns number of files in archive. We should assign `2` to `numItems`.
+1. `GetProperty` - returns the file properties. File `index` is used to identify the file.
+1. `Extract` - extracts files using `indices` and returns `S_OK`
+1. `GetArchiveProperty` - returns the properties of the archive file.
+1. `GetNumberOfProperties` - returns the number properties assigned to the files **inside** the archive.
+
+Other methods can return `S_OK` straight away.
+
