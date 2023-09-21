@@ -4,7 +4,7 @@ This repository is a light documentation of the 7-zip plugin system. We will dev
 Criteria | The SZ | The SZE
 -------- | ------ | -------
 Name | Sample zip archiver | Sample zip archiver extended
-Format | Returns two entries. First one is a text file named `sample.txt` with a text `sample`. Seconds is a `child.sz` archive, that creates endless recursion. | Files are encoded into the "archive" using text format: `{fileName}.{fileExtension}-{fileContent}|{fileName}.{fileExtension}-{fileContent}.....`
+Format | Returns file entities. Three files named `sampleX.txt` with a text `sampleX`. File `sample3.txt` is in the subdirectory named `someDir`. Finally `child.sz` archive, that creates endless recursion. | Files are encoded into the "archive" using text format: `{fileName}.{fileExtension}-{fileContent}|{fileName}.{fileExtension}-{fileContent}.....`
 Extensions | .sz | .sze, .szex
 
 The SZ format will be based on the simples example possible. For SZE we will experiment with the 7-zip flags and archiver parameters and interfaces. All of the code can be found in the `.src` folder.
@@ -249,14 +249,10 @@ STDAPI_LIB CreateObject(const GUID* clsid, const GUID* iid, void** outObject) {
 
 ### Implementation of the SZ Archive
 
-The implementation of the SZ sample archive can be found in [sz-archive.h](./src/archive/sz-archive.h) and [sz-archive.cc](./src/archive/sz-archive.cc). First we define the `SzInArchive` that will be created by the [CreateObject](#createobjectconst-guid-clsid-const-guid-iid-void-outobject) function. To be able to open and read archives the archiver must implement the following:
-1. The `IInArchive` interface.
-2. The `IUnknown` interface.
-
-I used the macro `Z7_IFACES_IMP_UNK_1` to create a declarations for `IUnknown` and `IInArchive` interfaces, and inherited from `CMyUnknownImpl` to provide definitions for `IUnknown`.
+The implementation of the SZ sample archive can be found in [sz-archive.h](./src/archive/sz-archive.h) and [sz-archive.cc](./src/archive/sz-archive.cc). First we define the `SzInArchive` that will be created by the [CreateObject](#createobjectconst-guid-clsid-const-guid-iid-void-outobject) function. Now, let's implement SZ sample archive. 
 
 <details>
-<summary>Definition of the <b>SzInArchive</b></summary>
+<summary>Definition of the <b>SzInArchive</b> class.</summary>
 
 ```C++
 class SzInArchive : public CMyUnknownImp, public IInArchive {
@@ -264,17 +260,159 @@ public:
   Z7_IFACES_IMP_UNK_1(IInArchive);
 };
 ```
+We implement the following interfaces:
+1. The `IInArchive` interface.
+2. The `IUnknown` interface.
+
+I used the macro `Z7_IFACES_IMP_UNK_1` to create a declarations for `IUnknown` and `IInArchive` interfaces, and inherited from `CMyUnknownImpl` to provide definitions for `IUnknown`.
 </details>
 
-<br>
+<details>
+<summary>Definition of the virtual files.</summary>
 
-Then we need to create implementation for `IInArchive` interface:
+```C++
+struct File {
+  const wchar_t* path;
+  bool is_dir;
+  const char* content;
+};
 
-1. `GetNumberOfItems` - returns number of files in archive. We should assign `2` to `numItems`.
-1. `GetProperty` - returns the file properties. File `index` is used to identify the file.
-1. `Extract` - extracts files using `indices` and returns `S_OK`
-1. `GetArchiveProperty` - returns the properties of the archive file.
-1. `GetNumberOfProperties` - returns the number properties assigned to the files **inside** the archive.
+std::array<File, 5> files = {{
+    {L"sample.txt", false, "sample"},
+    {L"sample2.txt", false, "sample2"},
+    {L"someDir", true, nullptr},
+    {L"someDir/sample3.txt", false, "sample3"},
+    {L"child.sz", false, "any"},
+}};
+```
+</details>
 
-Other methods can return `S_OK` straight away.
+<details><summary>Implementation of the <b>IInArchive</b> interface.</summary>
+<details class="d-nested"><summary><b>GetNumberOfItems</b> - returns number of files in archive.</summary>
+
+```C++
+HRESULT SzInArchive::GetNumberOfItems(UInt32* numItems) noexcept {
+  *numItems = static_cast<UInt32>(std::size(files));
+  return S_OK;
+}
+```
+</details>
+
+<details class="d-nested"><summary><b>GetProperty</b> - returns the file properties.</summary>
+
+```C++
+HRESULT SzInArchive::GetProperty(UInt32 index, PROPID propID,
+                                 PROPVARIANT* value) noexcept {
+  switch (propID) {
+    {
+      case kpidPath:
+        return utils::SetVariant(files[index].path, value);
+      case kpidIsDir:
+        return utils::SetVariant(files[index].is_dir, value);
+      case kpidNumSubFiles:
+      case kpidMTime:
+      case kpidIsAltStream:
+      case kpidEncrypted:
+      case kpidAttrib:
+      case kpidNumSubDirs:
+      case kpidSize:
+      case kpidPackSize:
+      case kpidCRC:
+      case kpidHardLink:
+      case kpidPosition:
+      case kpidSymLink:
+      case kpidPosixAttrib:
+      case kpidATime:
+      case kpidCTime:
+      case kpidIsAnti:
+        return S_OK;
+      default:
+        return S_OK;
+    }
+  }
+}
+```
+
+All of the above properties are queried from by the plugin host with current setup. Most of them are defaulted or ignored by returning `S_OK` and not touching the `value` variant.
+</details>
+
+<details class="d-nested"><summary><b>Extract</b> - extracts files</summary>
+
+```C++
+HRESULT SzInArchive::Extract(
+    const UInt32* indices, UInt32 numItems, Int32 testMode,
+    IArchiveExtractCallback* extractCallback) noexcept {
+  CMyComPtr<ISequentialOutStream> outStream;
+  while (numItems-- > 0) {
+    RINOK(extractCallback->GetStream(*indices, &outStream, 0));
+    UInt32 size_processed;
+    const char* content = files[*indices].content;
+    if (content) {
+      outStream->Write(content, static_cast<UInt32>(std::strlen(content)),
+                       &size_processed);
+    }
+    indices = indices + 1;
+  }
+
+  return S_OK;
+}
+```
+</details>
+
+
+<details class="d-nested"><summary><b>GetArchiveProperty</b> - returns the properties of the archive file.</summary>
+
+```C++
+HRESULT SzInArchive::GetArchiveProperty(PROPID propID,
+                                        PROPVARIANT* value) noexcept {
+  switch (propID) {
+    case kpidWarningFlags:
+    case kpidWarning:
+    case kpidErrorFlags:
+    case kpidError:
+    case kpidOffset:
+    case kpidPhySize:
+      return S_OK;
+
+    case kpidIsTree:
+    case kpidIsDeleted:
+    case kpidIsAltStream:
+    case kpidIsAux:
+    case kpidINode:
+      return utils::SetVariant(false, value);
+    case kpidReadOnly:
+      return utils::SetVariant(true, value);
+
+    case kpidMainSubfile:
+      return utils::SetVariant(0u, value);
+
+    default:
+      return E_NOTIMPL;
+  }
+}
+```
+All of the above properties are queried by the plugin host with current setup. Pay attention that we mark archive as **readonly**.
+</details>
+
+<details class="d-nested"><summary><b>GetNumberOfProperties</b> - returns 0</summary>
+
+```C++
+HRESULT SzInArchive::GetNumberOfProperties(UInt32* numProps) noexcept {
+  *numProps = 0;
+  return S_OK;
+}
+```
+We return 0 to indicate that we do not display properties of the files **inside** of the archive.
+</details>
+</details>
+
+### Implementation of the SZE archive
+
+The SZE archive emulates the real archive format. It is not readonly and user can add files to it. If user adds file with invalid symbols we should show error. As usual, lets start with the definitions of the classes required to implement the SZE archive.
+
+<style>
+.d-nested {
+    margin-left: 1em;
+}
+</style>
 

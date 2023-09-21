@@ -1,5 +1,5 @@
 #include "sz-archive.h"
-#include <unordered_map>
+#include <array>
 #include "../utils.h"
 
 namespace archive {
@@ -7,12 +7,16 @@ namespace archive {
 struct File {
   const wchar_t* path;
   bool is_dir;
+  const char* content;
 };
 
-File files[2] = {
-    {L"somefile.txt", false},
-    {L"somefile.sz", false},
-};
+std::array<File, 5> files = {{
+    {L"sample.txt", false, "sample"},
+    {L"sample2.txt", false, "sample2"},
+    {L"someDir", true, nullptr},
+    {L"someDir/sample3.txt", false, "sample3"},
+    {L"child.sz", false, "any"},
+}};
 
 HRESULT SzInArchive::Open(IInStream* stream,
                           const UInt64* maxCheckStartPosition,
@@ -55,7 +59,7 @@ HRESULT SzInArchive::GetProperty(UInt32 index, PROPID propID,
       case kpidIsAnti:
         return S_OK;
       default:
-        return E_NOTIMPL;
+        return S_OK;
     }
   }
 }
@@ -64,10 +68,15 @@ HRESULT SzInArchive::Extract(
     const UInt32* indices, UInt32 numItems, Int32 testMode,
     IArchiveExtractCallback* extractCallback) noexcept {
   CMyComPtr<ISequentialOutStream> outStream;
-  for (UInt32 i = 0; i < numItems; i++) {
+  while (numItems-- > 0) {
     RINOK(extractCallback->GetStream(*indices, &outStream, 0));
     UInt32 size_processed;
-    outStream->Write("12345678", 8, &size_processed);
+    const char* content = files[*indices].content;
+    if (content) {
+      outStream->Write(content, static_cast<UInt32>(std::strlen(content)),
+                       &size_processed);
+    }
+    indices = indices + 1;
   }
 
   return S_OK;
@@ -89,6 +98,7 @@ HRESULT SzInArchive::GetArchiveProperty(PROPID propID,
     case kpidIsAltStream:
     case kpidIsAux:
     case kpidINode:
+      return utils::SetVariant(false, value);
     case kpidReadOnly:
       return utils::SetVariant(true, value);
 
