@@ -288,7 +288,7 @@ std::array<File, 5> files = {{
 </details>
 
 <details><summary>Implementation of the <b>IInArchive</b> interface.</summary>
-<details class="d-nested"><summary><b>GetNumberOfItems</b> - returns number of files in archive.</summary>
+<details><summary><b>GetNumberOfItems</b> - returns number of files in archive.</summary>
 
 ```C++
 HRESULT SzInArchive::GetNumberOfItems(UInt32* numItems) noexcept {
@@ -298,7 +298,7 @@ HRESULT SzInArchive::GetNumberOfItems(UInt32* numItems) noexcept {
 ```
 </details>
 
-<details class="d-nested"><summary><b>GetProperty</b> - returns the file properties.</summary>
+<details><summary><b>GetProperty</b> - returns the file properties.</summary>
 
 ```C++
 HRESULT SzInArchive::GetProperty(UInt32 index, PROPID propID,
@@ -335,8 +335,7 @@ HRESULT SzInArchive::GetProperty(UInt32 index, PROPID propID,
 
 All of the above properties are queried from by the plugin host with current setup. Most of them are defaulted or ignored by returning `S_OK` and not touching the `value` variant.
 </details>
-
-<details class="d-nested"><summary><b>Extract</b> - extracts files</summary>
+<details><summary><b>Extract</b> - extracts files</summary>
 
 ```C++
 HRESULT SzInArchive::Extract(
@@ -360,7 +359,7 @@ HRESULT SzInArchive::Extract(
 </details>
 
 
-<details class="d-nested"><summary><b>GetArchiveProperty</b> - returns the properties of the archive file.</summary>
+<details><summary><b>GetArchiveProperty</b> - returns the properties of the archive file.</summary>
 
 ```C++
 HRESULT SzInArchive::GetArchiveProperty(PROPID propID,
@@ -394,7 +393,7 @@ HRESULT SzInArchive::GetArchiveProperty(PROPID propID,
 All of the above properties are queried by the plugin host with current setup. Pay attention that we mark archive as **readonly**.
 </details>
 
-<details class="d-nested"><summary><b>GetNumberOfProperties</b> - returns 0</summary>
+<details><summary><b>GetNumberOfProperties</b> - returns 0</summary>
 
 ```C++
 HRESULT SzInArchive::GetNumberOfProperties(UInt32* numProps) noexcept {
@@ -409,10 +408,3 @@ We return 0 to indicate that we do not display properties of the files **inside*
 ### Implementation of the SZE archive
 
 The SZE archive emulates the real archive format. It is not readonly and user can add files to it. If user adds file with invalid symbols we should show error. As usual, lets start with the definitions of the classes required to implement the SZE archive.
-
-<style>
-.d-nested {
-    margin-left: 1em;
-}
-</style>
-
