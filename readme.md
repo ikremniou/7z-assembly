@@ -234,6 +234,8 @@ Plugin host calls this method to set compression codecs for the plugin. This all
 
 Here we will review initial infrastructure to create handlers for `sz` and `sze` sample archives.
 
+TBA
+
 And finally plugin host will create InArchive object using [CreateObject](#createobjectconst-guid-clsid-const-guid-iid-void-outobject) method.
 
 ``` C++
@@ -404,6 +406,8 @@ HRESULT SzInArchive::GetNumberOfProperties(UInt32* numProps) noexcept {
 ```
 We return 0 to indicate that we do not display properties of the files **inside** of the archive.
 </details>
+
+Rest of the `IInArchive` methods can safely return `S_OK` right away.
 
 ### Implementation of the SZE archive
 
