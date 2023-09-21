@@ -277,18 +277,19 @@ struct File {
   const char* content;
 };
 
-std::array<File, 5> files = {{
+std::array<File, 5> files = {
+  {
     {L"sample.txt", false, "sample"},
     {L"sample2.txt", false, "sample2"},
     {L"someDir", true, nullptr},
     {L"someDir/sample3.txt", false, "sample3"},
     {L"child.sz", false, "any"},
-}};
+  }
+};
 ```
 </details>
 
-<details><summary>Implementation of the <b>IInArchive</b> interface.</summary>
-<details><summary><b>GetNumberOfItems</b> - returns number of files in archive.</summary>
+<details><summary><b>IInArchive::GetNumberOfItems</b> - returns number of files in archive.</summary>
 
 ```C++
 HRESULT SzInArchive::GetNumberOfItems(UInt32* numItems) noexcept {
@@ -298,7 +299,7 @@ HRESULT SzInArchive::GetNumberOfItems(UInt32* numItems) noexcept {
 ```
 </details>
 
-<details><summary><b>GetProperty</b> - returns the file properties.</summary>
+<details><summary><b>IInArchive::GetProperty</b> - returns the file properties.</summary>
 
 ```C++
 HRESULT SzInArchive::GetProperty(UInt32 index, PROPID propID,
@@ -335,7 +336,7 @@ HRESULT SzInArchive::GetProperty(UInt32 index, PROPID propID,
 
 All of the above properties are queried from by the plugin host with current setup. Most of them are defaulted or ignored by returning `S_OK` and not touching the `value` variant.
 </details>
-<details><summary><b>Extract</b> - extracts files</summary>
+<details><summary><b>IInArchive::Extract</b> - extracts files</summary>
 
 ```C++
 HRESULT SzInArchive::Extract(
@@ -359,7 +360,7 @@ HRESULT SzInArchive::Extract(
 </details>
 
 
-<details><summary><b>GetArchiveProperty</b> - returns the properties of the archive file.</summary>
+<details><summary><b>IInArchive::GetArchiveProperty</b> - returns the properties of the archive file.</summary>
 
 ```C++
 HRESULT SzInArchive::GetArchiveProperty(PROPID propID,
@@ -393,7 +394,7 @@ HRESULT SzInArchive::GetArchiveProperty(PROPID propID,
 All of the above properties are queried by the plugin host with current setup. Pay attention that we mark archive as **readonly**.
 </details>
 
-<details><summary><b>GetNumberOfProperties</b> - returns 0</summary>
+<details><summary><b>IInArchive::GetNumberOfProperties</b> - returns 0</summary>
 
 ```C++
 HRESULT SzInArchive::GetNumberOfProperties(UInt32* numProps) noexcept {
@@ -402,7 +403,6 @@ HRESULT SzInArchive::GetNumberOfProperties(UInt32* numProps) noexcept {
 }
 ```
 We return 0 to indicate that we do not display properties of the files **inside** of the archive.
-</details>
 </details>
 
 ### Implementation of the SZE archive
