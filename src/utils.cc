@@ -14,6 +14,13 @@ HRESULT SetVariant(bool bool_prop, PROPVARIANT* value) noexcept {
   return S_OK;
 }
 
+HRESULT SetVariant(const char* binary, unsigned size,
+                   PROPVARIANT* value) noexcept {
+  value->vt = VT_BSTR;
+  value->bstrVal = ::SysAllocStringByteLen(binary, size);
+  return S_OK;
+}
+
 HRESULT SetVariant(const wchar_t* str_prop, PROPVARIANT* value) noexcept {
   value->vt = VT_BSTR;
   value->bstrVal = SysAllocString(str_prop);

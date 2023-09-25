@@ -6,6 +6,7 @@ Criteria | The SZ | The SZE
 Name | Sample zip archiver | Sample zip archiver extended
 Format | Returns file entities. Three files named `sampleX.txt` with a text `sampleX`. File `sample3.txt` is in the subdirectory named `someDir`. Finally `child.sz` archive, that creates endless recursion. | Files are encoded into the "archive" using text format: `{fileName}.{fileExtension}-{fileContent}|{fileName}.{fileExtension}-{fileContent}.....`
 Extensions | .sz | .sze, .szex
+Signature | binary "SZ" | binary "SE"
 
 The SZ format will be based on the simples example possible. For SZE we will experiment with the 7-zip flags and archiver parameters and interfaces. All of the code can be found in the `.src` folder.
 
@@ -100,7 +101,6 @@ REGISTER_ARC_IO(
   , TIME_PREC_TO_ARC_FLAGS_MASK (NFileTimeType::kUnix)
   | TIME_PREC_TO_ARC_FLAGS_TIME_DEFAULT (NFileTimeType::kUnix)
   , IsArc_Gz)
-}}
 ```
 
 It is evident that macro `REGISTER_ARC_IO` is used to register the implementation that supports `gzip` formats like  `gz`, `gzip`, `tgz`, `tpz` and `apk`. It worth to mention that there are multiple `REGISTER_ARC_*` that are designed to tune how `Handlers` are registered. We will not go into the details on what all of these parameters mean, because we will not create a `Handler` and register it inside of the 7-Zip source code, but use the separate dynamic library to register and implement `Handlers`. At the same time it is possible to add handler into the 7-Zip source code. However, we will need to compile 7-zip binaries and ship a custom version of the 7-Zip, which is not acceptable.
@@ -288,6 +288,23 @@ std::array<File, 5> files = {
     {L"child.sz", false, "any"},
   }
 };
+```
+</details>
+
+<details><summary><b>IInArchive::Open</b> - opens archive and validates signature.</summary>
+
+```C++
+HRESULT SzInArchive::Open(IInStream* stream,
+                          const UInt64* maxCheckStartPosition,
+                          IArchiveOpenCallback* openCallback) noexcept {
+  char buffer[8];
+  UInt32 processed = 0;
+  stream->Read(buffer, sizeof(buffer), &processed);
+  if (buffer[0] != 'S' && buffer[0] != 'Z') {
+    return S_FALSE;
+  }
+  return S_OK;
+}
 ```
 </details>
 

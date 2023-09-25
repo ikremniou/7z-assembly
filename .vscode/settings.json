@@ -4,7 +4,9 @@
         "forward_list": "cpp",
         "list": "cpp",
         "xhash": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "xstring": "cpp",
+        "cstddef": "cpp"
     },
     "cSpell.words": [
         "clsid",

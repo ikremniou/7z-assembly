@@ -21,6 +21,12 @@ std::array<File, 5> files = {{
 HRESULT SzInArchive::Open(IInStream* stream,
                           const UInt64* maxCheckStartPosition,
                           IArchiveOpenCallback* openCallback) noexcept {
+  char buffer[8];
+  UInt32 processed = 0;
+  stream->Read(buffer, sizeof(buffer), &processed);
+  if (buffer[0] != 'S' && buffer[0] != 'Z') {
+    return S_FALSE;
+  }
   return S_OK;
 }
 
