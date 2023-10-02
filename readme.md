@@ -1,24 +1,27 @@
-# How to create a 7-Zip(7z) archiver plugins
-This repository is a light documentation of the 7-zip plugin system. We will develop 2 archiver handlers to extend the 7-zip File Manager. Below you can see some of the properties of the archiver:
+# How to Create a 7-Zip (7z) Archiver Plugin
+
+This repository provides a concise guide to the 7-Zip plugin system. We will develop two archiver handlers to extend the functionality of the 7-Zip File Manager. Below, you can find details about the properties of the archiver:
 
 Criteria | The SZ | The SZE
 -------- | ------ | -------
-Name | Sample zip archiver | Sample zip archiver extended
-Format | Returns file entities. Three files named `sampleX.txt` with a text `sampleX`. File `sample3.txt` is in the subdirectory named `someDir`. Finally `child.sz` archive, that creates endless recursion. | Files are encoded into the "archive" using text format: `{fileName}.{fileExtension}-{fileContent}|{fileName}.{fileExtension}-{fileContent}.....`
+Name | Sample ZIP Archiver | Sample ZIP Archiver Extended
+Format | Returns file entities. Three files named `sampleX.txt` with the text `sampleX`. File `sample3.txt` is in the subdirectory named `someDir`. Finally, the `child.sz` archive creates endless recursion. | Files are encoded into the "archive" using text format: `{fileName}.{fileExtension}-{fileContent}|{fileName}.{fileExtension}-{fileContent}.....`
 Extensions | .sz | .sze, .szex
-Signature | binary "SZ" | binary "SE"
+Signature | Binary "SZ" | Binary "SE"
 
-The SZ format will be based on the simples example possible. For SZE we will experiment with the 7-zip flags and archiver parameters and interfaces. All of the code can be found in the `.src` folder.
+The SZ format will be based on the simplest example possible. For SZE, we will experiment with the 7-Zip flags, archiver parameters, and interfaces. You can find all the code in the `.src` folder.
 
-## Initial setup
+## Initial Setup
 
-To kick off with the plugin creation for 7-Zip you have two option available.
-1. *(Easy)* You can copy the content of the `./src/7z-assembly.h` file to you repository and copy the contents of the `./src/plugin/` folder to your `plugin` folder in your repository. Please be aware that `7z-assembly.h` files has declarations only. Do not forget to implement the required declarations. Continue from the next [section](#understanding-the-7-zip-plugin-system).
-2. *(Hard)* You can follow the [instructions](#getting-along-with-the-7-zip-source-code) to build up the initial infrastructure by yourself.
+To begin creating a plugin for 7-Zip, you have two options available:
 
-### Getting along with the 7-Zip source code
+1. *(Easy)* Copy the content of the `./src/7z-assembly.h` file to your repository and copy the contents of the `./src/plugin/` folder to your `plugin` folder in your repository. Please note that the `7z-assembly.h` file contains only declarations. Don't forget to implement the required declarations. Continue from the next [section](#understanding-the-7-zip-plugin-system).
 
-First we need to download the 7-Zip source code. It is located on the [SourceForge](https://sourceforge.net/projects/sevenzip/). Go to the `Files` -> `7-Zip` -> `Version` -> `***-src.7z` and download the archive. After download and extracting the source code we can search for the definition files and find `CPP/7zip/Archive/Archive.def` and `CPP/7zip/Archive/Archive2.def`. It appears that there are multiple versions of the plugins available. We will use the second one as it seems to be specially designed for the new plugins. Here is the content of the `Archive2.def`:
+2. *(Hard)* Follow the [instructions](#getting-along-with-the-7-zip-source-code) to build the initial infrastructure by yourself.
+
+### Getting Along with the 7-Zip Source Code
+
+First, we need to download the 7-Zip source code, which is located on [SourceForge](https://sourceforge.net/projects/sevenzip/). Navigate to `Files` -> `7-Zip` -> `Version` -> `***-src.7z` and download the archive. After downloading and extracting the source code, search for the definition files: `CPP/7zip/Archive/Archive.def` and `CPP/7zip/Archive/Archive2.def`. It appears that there are multiple versions of the plugins available. We will use the second one as it seems to be specially designed for new plugins. Here is the content of the `Archive2.def`:
 
 ```def
 EXPORTS
