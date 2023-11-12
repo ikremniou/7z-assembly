@@ -19,6 +19,20 @@ export default defineConfig({
           { text: 'How to compile', link: '/how-to-compile' },
           { text: 'Plugin system', link: '/plugin-system' }
         ]
+      },
+      {
+        text: 'API',
+        items: [
+            { text: 'Archiver API', link: '/plugin-api-def' },
+        ]
+      },
+      {
+        text: 'Implementation',
+        items: [
+            { text: 'Infrastructure', link: '/infrastructure' },
+            { text: 'Implementing SZ', link: '/sz-impl' },
+            { text: 'Implementing SZE', link: '/sze-impl' },
+        ]
       }
     ],
 
