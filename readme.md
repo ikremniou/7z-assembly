@@ -11,7 +11,7 @@ Signature | Binary "SZ" | Binary "SE"
 
 <div align="center">
 
-All of the documentation is hosted on [*GitHub Pages*](https://ikremniou.github.io/7z-assembly/)
+Documentation is hosted on [*GitHub Pages*](https://ikremniou.github.io/7z-assembly/)
 </div>
 
 
