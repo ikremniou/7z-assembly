@@ -15,7 +15,7 @@ Once again, let's look at the definition of the `Archive2.def` file from [7-zip 
 - [SetCaseSensitive](#setcasesensitive-int32-casesensitive)
 - [GetModuleProp](#getmoduleprop-propid-propid-propvariant-value)
 
-These are the methods that can be implemented by the [dynamic plugin](./plugin-system.md#dynamic-plugins). Some of them are not mandatory to implement. It strongly depends on the functionality of your dynamic plugin. Below you can find a description of each function.
+These are the methods that can be implemented by the [Dynamic Plugins](./plugin-system.md#dynamic-plugins). Some of them are not mandatory to implement. It strongly depends on the functionality of your dynamic plugin. Below you can find a description of each function.
 
 ### `GetModuleProp(PROPID propID, PROPVARIANT* value)`
 
@@ -44,7 +44,7 @@ If the method is not implemented, the default codec index will be set to `0`.
 
 ### `GetMethodProperty(UInt32 codecIndex, PROPID propID, PROPVARIANT* value)`
 
-1. *`codecIndex`* - is used to specify the index of the archiver coder. The top index is resolved by [`GetNumberOfMethods`](#getnumberofmethodsuint32-numcodecs).
+1. *`codecIndex`* - is used to specify the index of the archiver coder. The top index is resolved by [`GetNumberOfMethods`](#getnumberofmethods-uint32-numcodecs).
 2. *`propID`* - is one of the following values:
    - *`kID`*(0) - expects the *VT_UI8* as the ID of the archive coder. It is used internally by the plugin host for tasks like checking the version of the "interface". Values like `kName` won't be queried if `kID` is not supported.
    - *`kName`*(1) - expects the *VT_BSTR* as the name of the archiver coder. For example, the name is displayed in the `Options` dialog in File Manager.
@@ -94,7 +94,7 @@ This function returns the metadata about the archive format(handler).
 
 ### `CreateObject(const GUID *clsid, const GUID *iid, void **outObject)`
 
-1. `clsid` - the format(handler) class id that is returned by the [GetHandlerProperty](#gethandlerproperty2uint32-formatindex-propid-propid-propvariant-value).
+1. `clsid` - the format(handler) class id that is returned by the [GetHandlerProperty](#gethandlerproperty2-uint32-formatindex-propid-propid-propvariant-value).
 2. `iid` - the id of the interface of the object to create. For example, `IID_IInArchive` - the interface used to **read** the archives. 
 3. `outObject` - the COM-way to return the reference to the created object. Assign the object reference to `*outObject`.
 
@@ -127,7 +127,7 @@ Adjusts the [Case Sensitivity](https://learn.microsoft.com/en-us/windows/wsl/cas
 
 1. `compressCodecsInfo` - the interface to the compression codecs implemented by 7-zip.
 
-The plugin host calls this method to set compression codecs for the plugin. This allows using built-in [In-Place](#in-place-plugins) compression algorithms.
+The plugin host calls this method to set compression codecs for the plugin. This allows using built-in [In-Place](./plugin-system.md#in-place-plugins) compression algorithms.
 
 ### `GetIsArc(UInt32 formatIndex, Func_IsArc *isArc)`
 

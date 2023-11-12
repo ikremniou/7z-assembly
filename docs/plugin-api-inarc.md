@@ -1,5 +1,14 @@
 # IInArchive
 
+`IInArchive` is the interface the plugin archive format must implement to be able to [Open](#open) and [Extract](#extract) the archive. We will utilize the `CMyUnknownImpl` with `Z7_IFACES_IMP_UNK_1` macro to 'hide' boilerplate 'COM' code:
+
+```C++
+class SzInArchive : public CMyUnknownImp, public IInArchive {
+public:
+  Z7_IFACES_IMP_UNK_1(IInArchive);
+};
+```
+
 ### Open
 ```C++
 HRESULT Open(

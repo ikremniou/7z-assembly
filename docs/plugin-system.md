@@ -35,4 +35,10 @@ It is evident that macro `REGISTER_ARC_IO` is used to register the implementatio
 In the end, the `REGISTER_ARC_*` macro expands to the definition of the struct and the static variables. These static variables are later aggregated into a collection by invoking the constructor of a static class during the initialization phase. When the 7-Zip File Manager tries to open a file, it searches for the matching handler for that file within the internal collection and uses it to open the archive. For all of this to work, the `REGISTER_ARC_*` macros must be defined in a unique namespace.
 
 ## Dynamic Plugins
-The dynamic plugins are DLLs that export functions defined in the `Archive2.def` file. It's worth noting that not all of the defined functions are required to be implemented. Usually, 7-Zip will fallback to default values for most of the callbacks. The `Archive2.def` file defines the following functions:
+The dynamic plugins are DLLs that export functions defined in the `Archive2.def` file. It's worth noting that not all of the defined functions are required to be implemented. Usually, 7-Zip will fallback to default values for most of the callbacks. 
+- The `Archive2.def` function can be located in [Initial Section](./beginning.md#initial-setup). 
+- The function documentation can be found in [Plugin Interface](./plugin-api-def.md).
+
+::: info
+In order for dynamic plugins to work, they must be placed inside the `Coders` or `Formats` folders, at the root of the 7-Zip installation, for example `C:\Program Files\7-Zip\Formats\7z-assembly.dll`.
+:::

@@ -12,7 +12,7 @@ STDAPI_LIB CreateObject(const GUID* clsid, const GUID* iid, void** outObject) {
     *outObject = new archive::SzInArchive();
   }
 
-  static_cast<IUnknown*>(*outObject)->AddRef();
+  static_cast<IUnknown*>(*outObject)->AddRef(); // [!code hl]
   return S_OK;
 }
 ```
