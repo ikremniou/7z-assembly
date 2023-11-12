@@ -1,14 +1,17 @@
 # Initial setup
 
-To kick off with the plugin creation for 7-Zip you have two option available.
-1. *(Easy)* You can go to the releases section on GitHub and find `Plugin API vXX.X` and download `plugin_headers_vXX.XX`. Extract this folder into your project and you can start implementing plugins for 7zip. Please be aware that `7z-assembly.h` files has declarations only. Do not forget to implement the required declarations. Continue from the next [section](#understanding-the-7-zip-plugin-system).
-1. *(Hard)* You can follow the [instructions](#getting-along-with-the-7-zip-source-code) to build up the initial infrastructure by yourself.
+To create plugins for 7-Zip, you have two options:
 
-### Getting along with the 7-Zip source code
+1. *(Easy)* Download the `plugin_headers_vXX.XX` folder from the releases section on GitHub under `Plugin API vXX.X`. Extract this folder into your project and implement the required declarations in the `7z-assembly.h` files. Refer to the [API](./plugin-api-def.md) section for documentation on the declarations implementation.
 
-First we need to download the 7-Zip source code. It is located on the [SourceForge](https://sourceforge.net/projects/sevenzip/). Go to the `Files` -> `7-Zip` -> `Version` -> `***-src.7z` and download the archive. After download and extracting the source code we can search for the definition files and find `CPP/7zip/Archive/Archive.def` and `CPP/7zip/Archive/Archive2.def`. It appears that there are multiple versions of the plugins available. We will use the second one as it seems to be specially designed for the new plugins. Here is the content of the `Archive2.def`:
+2. *(Hard)* Build the initial infrastructure yourself by following these steps:
+   - Download the 7-Zip source code from [SourceForge](https://sourceforge.net/projects/sevenzip/). Go to `Files` -> `7-Zip` -> `Version` -> `***-src.7z` and extract the archive.
+   - Look for the definition files `CPP/7zip/Archive/Archive.def` and `CPP/7zip/Archive/Archive2.def` in the extracted source code. We recommend using `Archive2.def` as it is specifically designed for new plugins.
+   - Continue step by step with this documentation to build understanding of the plugins.
 
-```def
+Here is the content of `Archive2.def`:
+
+```txt
 EXPORTS
   CreateObject PRIVATE
   GetHandlerProperty PRIVATE
@@ -26,7 +29,7 @@ EXPORTS
   GetModuleProp PRIVATE
 ```
 
-We will search for all of the methods defined in the definition file and will copy function signatures to the `7z-assembly.h` file. After copying the definitions we must add the missing includes. I will place this files in the `./src/plugins/` directory to organize everything in one place. In addition to that I will create in `Export.h` inside of the plugins directory to have just one `#include` in the `7z-assembly.h` file. When I copy files from the 7-zip source code archive I update the `#include`'s to reference local files neglecting the source code directory structure. Here is the list of the definitions I have assembled from the 7-zip source code archive:
+We will search for all of the methods defined in the definition file and will copy function signatures to the `7z-assembly.h` file. After copying the definitions, we must add the missing includes. I will place these files in the `./src/plugins/` directory to organize everything in one place. In addition to that, I will create `Export.h` inside the plugins directory to have just one `#include` in the `7z-assembly.h` file. When I copy files from the 7-zip source code archive, I update the `#include`s to reference local files neglecting the source code directory structure. Here is the list of the definitions I have assembled from the 7-zip source code archive:
 
 ```cpp
 STDAPI_LIB CreateObject(const GUID *clsid, const GUID *iid, void **outObject);
@@ -45,5 +48,5 @@ STDAPI_LIB SetCaseSensitive(Int32 caseSensitive)
 STDAPI_LIB GetModuleProp(PROPID propID, PROPVARIANT *value);
 ```
 
-I have defined the `STDAPI_LIB` as `as` to make them exported from the library. I am using the cmake `GENERATE_EXPORT_HEADER` function to define the `LIB_EXPORT` macro.
+I have defined the `STDAPI_LIB` as `is` to make them exported from the library. I am using the cmake `GENERATE_EXPORT_HEADER` function to define the `LIB_EXPORT` macro.
 

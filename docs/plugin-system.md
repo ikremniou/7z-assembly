@@ -3,7 +3,7 @@
 
 In this documentation we will examine the **23.01** version of the 7-Zip plugin system used in File Manager. It may not work with the older versions. So if you would like develop the plugins for the older versions you will not find the solution in this repository.
 
-Once we have all of the declarations in place we can create a mock definitions for the required API. In scope of my research I used the CMake install command to install the plugin `.dll` to the `Formats` directory on the 7-zip root. At the same time I used the VSCode launch configuration to launch the the **7-Zip File Manager** to debug and test the sample plugins:
+Once we have all of the declarations in place we can create a mock definitions for the required API. In scope of my research I used the CMake install command to install the plugin `.dll` to the `Formats` directory on the 7-zip root. At the same time I used VSCode launch configuration to launch the the **7-Zip File Manager** to debug and test the sample plugins:
 ```json
 {
     "name": "Debug 7zFM",
@@ -30,10 +30,9 @@ REGISTER_ARC_IO(
   | TIME_PREC_TO_ARC_FLAGS_TIME_DEFAULT (NFileTimeType::kUnix)
   , IsArc_Gz)
 ```
+It is evident that macro `REGISTER_ARC_IO` is used to register the implementation that supports `gzip` formats like `gz`, `gzip`, `tgz`, `tpz`, and `apk`. It's worth mentioning that there are multiple `REGISTER_ARC_*` macros that are designed to tune how `Handlers` are registered. We won't go into the details of what all these parameters mean because we won't be creating a `Handler` and registering it inside the 7-Zip source code. Instead, we'll use a separate dynamic library to register and implement `Handlers`. It is also possible to add a handler into the 7-Zip source code, but that would require compiling 7-Zip binaries and shipping a custom version of 7-Zip, which is not acceptable.
 
-It is evident that macro `REGISTER_ARC_IO` is used to register the implementation that supports `gzip` formats like  `gz`, `gzip`, `tgz`, `tpz` and `apk`. It worth to mention that there are multiple `REGISTER_ARC_*` that are designed to tune how `Handlers` are registered. We will not go into the details on what all of these parameters mean, because we will not create a `Handler` and register it inside of the 7-Zip source code, but use the separate dynamic library to register and implement `Handlers`. At the same time it is possible to add handler into the 7-Zip source code. However, we will need to compile 7-zip binaries and ship a custom version of the 7-Zip, which is not acceptable.
-
-At the end, the macro `REGISTER_ARC_*` is expanded to the definition of the struct and the static variables to later on aggregate all of the handlers into the collection (by invoking the constructor of the static class on initialization phase). Once 7-Zip File Manager tries to open a file it will search for the matching handler for this file inside of the internal collection and then will use it to open the archive. For all of this to work the `REGISTER_ARC_*` must be defined into the unique namespace.
+In the end, the `REGISTER_ARC_*` macro expands to the definition of the struct and the static variables. These static variables are later aggregated into a collection by invoking the constructor of a static class during the initialization phase. When the 7-Zip File Manager tries to open a file, it searches for the matching handler for that file within the internal collection and uses it to open the archive. For all of this to work, the `REGISTER_ARC_*` macros must be defined in a unique namespace.
 
 ## Dynamic Plugins
-The dynamic plugins are the DLLs that export functions defined in the `Archine2.def`. Looking ahead, not all of the function defined are required to be implemented. Usually 7-Zip will fallback to the default values for the most of the callbacks. The following functions are defined in the `Archine2.def`:
+The dynamic plugins are DLLs that export functions defined in the `Archive2.def` file. It's worth noting that not all of the defined functions are required to be implemented. Usually, 7-Zip will fallback to default values for most of the callbacks. The `Archive2.def` file defines the following functions:

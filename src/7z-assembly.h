@@ -20,6 +20,4 @@ STDAPI_LIB GetHashers(IHashers** hashers);
 STDAPI_LIB SetCodecs(ICompressCodecsInfo* compressCodecsInfo);
 STDAPI_LIB GetModuleProp(PROPID propID, PROPVARIANT* value);
 
-EXPORTED void say_hello();
-
 #endif  // LIB_ASSEMBLY_H_

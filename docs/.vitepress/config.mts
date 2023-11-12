@@ -24,7 +24,8 @@ export default defineConfig({
       {
         text: 'API',
         items: [
-            { text: 'Archiver API', link: '/plugin-api-def' },
+            { text: 'Plugin Interface', link: '/plugin-api-def' },
+            { text: 'IInArchive', link: '/plugin-api-inarc' },
         ]
       },
       {

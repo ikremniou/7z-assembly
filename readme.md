@@ -9,4 +9,7 @@ Format | Returns file entities. Three files named `sampleX.txt` with the text `s
 Extensions | .sz | .sze, .szex
 Signature | Binary "SZ" | Binary "SE"
 
-All of the documentation is hosted on [GitHub Pages](ikremniou.github.io/7z-assembly);
+<center>
+
+All of the documentation is hosted on [GitHub Pages](https://ikremniou.github.io/7z-assembly/)
+</center>
