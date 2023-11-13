@@ -16,7 +16,7 @@ private:
   };
 
   UInt32 all_size_;
-  std::vector<File> files_;
+  std::vector<File> items_;
 };
 }  // namespace archive
 

@@ -1,69 +1,51 @@
 #include "sze-archive.h"
+#include <iostream>
 #include <tuple>
 #include "../utils.h"
+#include "sze-reader.h"
 
 namespace archive {
+
 HRESULT SzeInArchive::Open(IInStream* stream,
                            const UInt64* maxCheckStartPosition,
                            IArchiveOpenCallback* openCallback) noexcept {
-
-  char buffer[255];
-  UInt32 current_pos = 1;
-  UInt32 extracted = 0;
-  auto reader = [&current_pos, &extracted, buffer,
-                 stream]() mutable -> std::pair<bool, char> {
-    if (current_pos > extracted) {
-      current_pos = 0;
-      stream->Read(buffer, sizeof(buffer), &extracted);
-      if (extracted == 0) {
-        return {true, 0};
-      }
-    }
-
-    return {false, buffer[current_pos++]};
+  ArchiveReader archive_reader(stream);
+  auto curr_it = archive_reader.begin();
+  auto next = [](ArchiveReader::Iterator& it) -> ArchiveReader::Iterator& {
+    return ++it;
   };
 
-  // validating signature
-  auto it = reader();
-  if (it.second != 'S') {
+  // validate signature
+  if (*curr_it != 'S' && *next(curr_it) != 'Z') {
     return S_FALSE;
   }
 
-  it = reader();
-  if (it.second != 'E') {
-    return S_FALSE;
-  }
-
-  it = reader();
-  while (!it.first) {
-    if (it.second == '{') {
+  while (curr_it != archive_reader.end()) {
+    if (*curr_it == '{') {
       File file;
 
-      it = reader();
-      while (it.second != '|') {
-        file.path.push_back(it.second);
-        it = reader();
+      // read item path
+      while (*next(curr_it) != '|') {
+        file.path.push_back(*curr_it);
       }
 
-      it = reader();
+      // read item size
       std::string size_str;
-      while (it.second != '}') {
-        size_str.push_back(it.second);
-        it = reader();
+      while (*next(curr_it) != '}') {
+        size_str.push_back(*curr_it);
       }
 
-      it = reader();
+      // read item content
       auto size = std::atoi(size_str.c_str());
       file.content.resize(size);
       for (auto i = 0; i < size; i++) {
-        file.content[i] = it.second;
-        it = reader();
+        file.content[i] = *next(curr_it);
       }
 
-      files_.push_back(std::move(file));
-    } else {
-      it = reader();
+      items_.push_back(std::move(file));
     }
+
+    next(curr_it);
   }
 
   return S_OK;
@@ -74,7 +56,7 @@ HRESULT SzeInArchive::Close() noexcept {
 }
 
 HRESULT SzeInArchive::GetNumberOfItems(UInt32* numItems) noexcept {
-  *numItems = static_cast<UInt32>(files_.size());
+  *numItems = static_cast<UInt32>(items_.size());
   return S_OK;
 }
 
@@ -82,9 +64,11 @@ HRESULT SzeInArchive::GetProperty(UInt32 index, PROPID propID,
                                   PROPVARIANT* value) noexcept {
   switch (propID) {
     case kpidPath:
-      return utils::SetVariant(files_[index].path.c_str(), value);
+      return utils::SetVariant(items_[index].path.c_str(), value);
     case kpidIsDir:
       return utils::SetVariant(false, value);
+    case kpidSize:
+      return utils::SetVariant(items_[index].content.size(), value);
   }
   return S_OK;
 }
@@ -101,8 +85,8 @@ HRESULT SzeInArchive::Extract(
     extractCallback->GetStream(*indices, &stream, 0);
 
     UInt32 processed;
-    stream->Write(files_[*indices].content.data(),
-                  static_cast<UInt32>(files_[*indices].content.size()),
+    stream->Write(items_[*indices].content.data(),
+                  static_cast<UInt32>(items_[*indices].content.size()),
                   &processed);
     indices = indices + 1;
   }
@@ -115,12 +99,16 @@ HRESULT SzeInArchive::GetArchiveProperty(PROPID propID,
 }
 
 HRESULT SzeInArchive::GetNumberOfProperties(UInt32* numProps) noexcept {
-  *numProps = 0;
+  *numProps = 1;
   return S_OK;
 }
 
 HRESULT SzeInArchive::GetPropertyInfo(UInt32 index, BSTR* name, PROPID* propID,
                                       VARTYPE* varType) noexcept {
+
+  *name = SysAllocString(L"Size");
+  *propID = kpidSize;
+  *varType = VT_UI8;
   return S_OK;
 }
 
