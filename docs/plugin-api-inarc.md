@@ -11,11 +11,11 @@ public:
 
 ### Open
 ```C++
-HRESULT Open(
+HRESULT IInArchive::Open(
     IInStream *stream,
     const UInt64 *maxCheckStartPosition,
     IArchiveOpenCallback *openCallback
-);
+) noexcept;
 ```
 
 Function invoked when plugin host will find the fitting archive to open. Usually it is not mandatory to read all archive in memory. Most archives read only head(table) section of the archive. This gives basic understanding of the properties of the archive that can be queried later on.
@@ -35,7 +35,7 @@ The callback to report the progress of opening the archive.
 
 ### Close
 ```C++
-Close();
+HRESULT IInArchive::Close() noexcept;
 ```
 
 Function called to close the archive. Dispose the resources allocated in `Open` function.
@@ -43,9 +43,9 @@ Function called to close the archive. Dispose the resources allocated in `Open` 
 
 ### GetNumberOfItems 
 ```C++
-GetNumberOfItems(
+HRESULT IInArchive::GetNumberOfItems(
     UInt32 *numItems
-);
+) noexcept;
 ```
 
 `[out] numItems`
@@ -54,23 +54,23 @@ Return the number of items(files, dirs) stored in archive. The index of the item
 
 ### GetProperty
 ```C++
-GetProperty(
+HRESULT IInArchive::GetProperty(
     UInt32 index,
     PROPID propID,
     PROPVARIANT *value
-);
+) noexcept;
 ```
 
 This function must return the property of the particular item. Item is indexed using `GetNumberOfItems` function. The property ids can be located in `ProgID.h` file.
 
 ### Extract
 ```C++
-Extract(
+HRESULT IInArchive::Extract(
     const UInt32 *indices,
     UInt32 numItems,
     Int32 testMode,
     IArchiveExtractCallback *extractCallback
-);
+) noexcept;
 ```
 
 Extract the items indexed by `indices`. Use extract callback to query for the stream to write to.
@@ -93,10 +93,10 @@ The callback to report the progress of extracting the items. Also, this callback
 
 ### GetArchiveProperty
 ```C++
-GetArchiveProperty(
+HRESULT IInArchive::GetArchiveProperty(
     PROPID propID,
     PROPVARIANT *value
-);
+) noexcept;
 ```
 
 Gets general archive properties like `PhysicalSize` or `Readonly` or error properties if to check if there was any error during `Open`.
@@ -111,9 +111,9 @@ The value to the property to required to return.
 
 ### GetNumberOfProperties
 ```C++
-GetNumberOfProperties(
+HRESULT IInArchive::GetNumberOfProperties(
     UInt32 *numProps
-);
+) noexcept;
 ```
 
 Gets the number of properties in the archive.
@@ -132,12 +132,12 @@ It is easy to confuse the `GetPropertyInfo` and `GetProperty` functions. So, `Ge
 
 ### GetPropertyInfo
 ```C++
-GetPropertyInfo(
+HRESULT IInArchive::GetPropertyInfo(
     UInt32 index,
     BSTR *name,
     PROPID *propID,
     VARTYPE *varType
-);
+) noexcept;
 ```
 
 Assigns names to the properties of the archive items.
@@ -160,9 +160,9 @@ The variant type(short) of the property.
 
 ### GetNumberOfArchiveProperties 
 ```C++
-GetNumberOfArchiveProperties(
+HRESULT IInArchive::GetNumberOfArchiveProperties(
     UInt32 *numProps
-);
+) noexcept;
 ```
 
 `[out] numProps`
@@ -171,12 +171,12 @@ Return the number of the names properties you want display for the archive.
 
 ### GetArchivePropertyInfo
 ```C++
-GetArchivePropertyInfo(
+HRESULT IInArchive::GetArchivePropertyInfo(
     PROPID propID,
     BSTR *name,
     PROPID *propID,
     VARTYPE *varType
-);
+) noexcept;
 ```
 
 Assign the name to the archive properties.

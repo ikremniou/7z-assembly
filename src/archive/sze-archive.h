@@ -6,8 +6,8 @@
 #include "../plugin/Export.h"
 
 namespace archive {
-class SzeInArchive : public CMyUnknownImp, public IInArchive {
-  Z7_IFACES_IMP_UNK_1(IInArchive);
+class SzeInArchive : public CMyUnknownImp, public IInArchive, public IOutArchive {
+  Z7_IFACES_IMP_UNK_2(IInArchive, IOutArchive);
 
 private:
   struct File {

@@ -121,4 +121,49 @@ HRESULT SzeInArchive::GetArchivePropertyInfo(UInt32 index, BSTR* name,
                                              VARTYPE* varType) noexcept {
   return S_OK;
 }
+
+HRESULT SzeInArchive::UpdateItems(
+    ISequentialOutStream* outStream, UInt32 numItems,
+    IArchiveUpdateCallback* updateCallback) noexcept {
+  for (UInt32 i = 0; i < numItems; i++) {
+    Int32 newData;
+    Int32 newProps;
+    UInt32 indexInArchive;
+    HRESULT res = updateCallback->GetUpdateItemInfo(i, &newData, &newProps, &indexInArchive);
+    if (newData == 0 && newProps == 0) {
+        continue;
+    }
+
+    CMyComPtr<ISequentialInStream> in_stream;
+    res = updateCallback->GetStream(i, &in_stream);
+    if (FAILED(res)) {
+        continue;
+    }
+
+    File file{};
+    if (items_.size() <= i) {
+        items_.push_back(file);
+    }
+
+    ArchiveReader reader(in_stream);
+    if (newData) {
+        for(byte b : reader) {
+            items_[i].content.push_back(b);
+        }
+    }
+
+    if (newProps) {
+        PROPVARIANT variant_path;
+        updateCallback->GetProperty(i, kpidPath, &variant_path);
+        items_[i].path = std::wstring(variant_path.bstrVal);
+    }
+
+  }
+  return S_OK;
+}
+
+HRESULT SzeInArchive::GetFileTimeType(UInt32* type) noexcept {
+  *type = NFileTimeType::EEnum::kNotDefined;
+  return S_OK;
+}
 }  // namespace archive

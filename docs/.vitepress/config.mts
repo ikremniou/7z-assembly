@@ -26,6 +26,7 @@ export default defineConfig({
         items: [
             { text: 'Plugin Interface', link: '/plugin-api-def' },
             { text: 'IInArchive', link: '/plugin-api-inarc' },
+            { text: 'IOutArchive', link: '/plugin-api-outarc' },
         ]
       },
       {
