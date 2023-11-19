@@ -46,4 +46,18 @@ HRESULT SetMockTime(PROPVARIANT* value) noexcept {
   return S_OK;
 }
 
+std::wstring S2ws(const std::string& s) {
+  int len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), (int)s.length(), 0, 0);
+  std::wstring r(len, L'\0');
+  MultiByteToWideChar(CP_ACP, 0, s.c_str(), (int)s.length(), &r[0], len);
+  return r;
+}
+
+std::string Ws2s(const std::wstring& s) {
+  int len = WideCharToMultiByte(CP_ACP, 0, s.c_str(), (int)s.length(), 0, 0, 0, 0);
+  std::string r(len, '\0');
+  WideCharToMultiByte(CP_ACP, 0, s.c_str(), (int)s.length(), &r[0], len, 0, 0);
+  return r;
+}
+
 }  // namespace utils

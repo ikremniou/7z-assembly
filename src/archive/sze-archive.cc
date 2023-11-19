@@ -9,6 +9,7 @@ namespace archive {
 HRESULT SzeInArchive::Open(IInStream* stream,
                            const UInt64* maxCheckStartPosition,
                            IArchiveOpenCallback* openCallback) noexcept {
+  items_.clear();
   ArchiveReader archive_reader(stream);
   auto curr_it = archive_reader.begin();
   auto next = [](ArchiveReader::Iterator& it) -> ArchiveReader::Iterator& {
@@ -64,7 +65,7 @@ HRESULT SzeInArchive::GetProperty(UInt32 index, PROPID propID,
                                   PROPVARIANT* value) noexcept {
   switch (propID) {
     case kpidPath:
-      return utils::SetVariant(items_[index].path.c_str(), value);
+      return utils::SetVariant(utils::S2ws(items_[index].path).c_str(), value);
     case kpidIsDir:
       return utils::SetVariant(false, value);
     case kpidSize:
@@ -125,45 +126,65 @@ HRESULT SzeInArchive::GetArchivePropertyInfo(UInt32 index, BSTR* name,
 HRESULT SzeInArchive::UpdateItems(
     ISequentialOutStream* outStream, UInt32 numItems,
     IArchiveUpdateCallback* updateCallback) noexcept {
-  for (UInt32 i = 0; i < numItems; i++) {
-    Int32 newData;
-    Int32 newProps;
-    UInt32 indexInArchive;
-    HRESULT res = updateCallback->GetUpdateItemInfo(i, &newData, &newProps, &indexInArchive);
-    if (newData == 0 && newProps == 0) {
-        continue;
-    }
-
-    CMyComPtr<ISequentialInStream> in_stream;
-    res = updateCallback->GetStream(i, &in_stream);
-    if (FAILED(res)) {
-        continue;
-    }
-
-    File file{};
-    if (items_.size() <= i) {
-        items_.push_back(file);
-    }
-
-    ArchiveReader reader(in_stream);
-    if (newData) {
-        for(byte b : reader) {
-            items_[i].content.push_back(b);
-        }
-    }
-
-    if (newProps) {
-        PROPVARIANT variant_path;
-        updateCallback->GetProperty(i, kpidPath, &variant_path);
-        items_[i].path = std::wstring(variant_path.bstrVal);
-    }
-
-  }
+  UpdateItemsInMemItems(numItems, updateCallback);
+  WriteFilesToOutStream(outStream);
   return S_OK;
 }
 
 HRESULT SzeInArchive::GetFileTimeType(UInt32* type) noexcept {
   *type = NFileTimeType::EEnum::kNotDefined;
   return S_OK;
+}
+
+void SzeInArchive::WriteFilesToOutStream(ISequentialOutStream* outStream) {
+    UInt32 processed = 0;
+    outStream->Write("SZ", 2, &processed);
+    for (const auto& file : items_) {
+        outStream->Write("{", 1, &processed);
+        outStream->Write(file.path.data(), static_cast<UInt32>(file.path.size()), &processed);
+        outStream->Write("|", 1, &processed);
+        std::string size = std::to_string(file.content.size());
+        outStream->Write(size.data(), static_cast<UInt32>(size.size()), &processed);
+        outStream->Write("}", 1, &processed);
+        outStream->Write(file.content.data(), static_cast<UInt32>(file.content.size()), &processed);
+    }
+}
+
+void SzeInArchive::UpdateItemsInMemItems(UInt32 numItems,
+                               IArchiveUpdateCallback* updateCallback) {
+  for (UInt32 i = 0; i < numItems; i++) {
+    Int32 newData;
+    Int32 newProps;
+    UInt32 indexInArchive;
+    HRESULT res = updateCallback->GetUpdateItemInfo(i, &newData, &newProps,
+                                                    &indexInArchive);
+    if (newData == 0 && newProps == 0) {
+      continue;
+    }
+
+    CMyComPtr<ISequentialInStream> in_stream;
+    res = updateCallback->GetStream(i, &in_stream);
+    if (FAILED(res)) {
+      continue;
+    }
+
+    File file{};
+    if (items_.size() <= i) {
+      items_.push_back(file);
+    }
+
+    ArchiveReader reader(in_stream);
+    if (newData) {
+      for (byte b : reader) {
+        items_[i].content.push_back(b);
+      }
+    }
+
+    if (newProps) {
+      PROPVARIANT variant_path{};
+      updateCallback->GetProperty(i, kpidPath, &variant_path);
+      items_[i].path = std::string(utils::Ws2s(variant_path.bstrVal));
+    }
+  }
 }
 }  // namespace archive
