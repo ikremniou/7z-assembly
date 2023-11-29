@@ -81,8 +81,8 @@ HRESULT SzeInArchive::Extract(
     return S_OK;
   }
 
-  CMyComPtr<ISequentialOutStream> stream;
   while (numItems-- > 0) {
+    CMyComPtr<ISequentialOutStream> stream;
     extractCallback->GetStream(*indices, &stream, 0);
 
     UInt32 processed;
@@ -91,6 +91,7 @@ HRESULT SzeInArchive::Extract(
                   &processed);
     indices = indices + 1;
   }
+
   return S_OK;
 }
 
@@ -107,7 +108,7 @@ HRESULT SzeInArchive::GetNumberOfProperties(UInt32* numProps) noexcept {
 HRESULT SzeInArchive::GetPropertyInfo(UInt32 index, BSTR* name, PROPID* propID,
                                       VARTYPE* varType) noexcept {
 
-  *name = SysAllocString(L"Size");
+  *name = SysAllocString(L"Real size");
   *propID = kpidSize;
   *varType = VT_UI8;
   return S_OK;
@@ -137,21 +138,23 @@ HRESULT SzeInArchive::GetFileTimeType(UInt32* type) noexcept {
 }
 
 void SzeInArchive::WriteFilesToOutStream(ISequentialOutStream* outStream) {
-    UInt32 processed = 0;
-    outStream->Write("SZ", 2, &processed);
-    for (const auto& file : items_) {
-        outStream->Write("{", 1, &processed);
-        outStream->Write(file.path.data(), static_cast<UInt32>(file.path.size()), &processed);
-        outStream->Write("|", 1, &processed);
-        std::string size = std::to_string(file.content.size());
-        outStream->Write(size.data(), static_cast<UInt32>(size.size()), &processed);
-        outStream->Write("}", 1, &processed);
-        outStream->Write(file.content.data(), static_cast<UInt32>(file.content.size()), &processed);
-    }
+  UInt32 processed = 0;
+  outStream->Write("SZ", 2, &processed);
+  for (const auto& file : items_) {
+    outStream->Write("{", 1, &processed);
+    outStream->Write(file.path.data(), static_cast<UInt32>(file.path.size()),
+                     &processed);
+    outStream->Write("|", 1, &processed);
+    std::string size = std::to_string(file.content.size());
+    outStream->Write(size.data(), static_cast<UInt32>(size.size()), &processed);
+    outStream->Write("}", 1, &processed);
+    outStream->Write(file.content.data(),
+                     static_cast<UInt32>(file.content.size()), &processed);
+  }
 }
 
-void SzeInArchive::UpdateItemsInMemItems(UInt32 numItems,
-                               IArchiveUpdateCallback* updateCallback) {
+void SzeInArchive::UpdateItemsInMemItems(
+    UInt32 numItems, IArchiveUpdateCallback* updateCallback) {
   for (UInt32 i = 0; i < numItems; i++) {
     Int32 newData;
     Int32 newProps;
@@ -169,21 +172,23 @@ void SzeInArchive::UpdateItemsInMemItems(UInt32 numItems,
     }
 
     File file{};
-    if (items_.size() <= i) {
+    if (indexInArchive == -1) {
       items_.push_back(file);
+      indexInArchive = static_cast<UInt32>(items_.size() - 1);
     }
 
     ArchiveReader reader(in_stream);
     if (newData) {
+      items_[indexInArchive].content.clear();
       for (byte b : reader) {
-        items_[i].content.push_back(b);
+        items_[indexInArchive].content.push_back(b);
       }
     }
 
     if (newProps) {
       PROPVARIANT variant_path{};
       updateCallback->GetProperty(i, kpidPath, &variant_path);
-      items_[i].path = std::string(utils::Ws2s(variant_path.bstrVal));
+      items_[indexInArchive].path = std::string(utils::Ws2s(variant_path.bstrVal));
     }
   }
 }
