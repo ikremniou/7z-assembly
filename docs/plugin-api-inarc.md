@@ -31,7 +31,7 @@ If `*0`, the handler must check only current position as archive start
 
 `[in] openCallback`
 
-The callback to report the progress of opening the archive.
+The callback to report the progress of opening the archive. See [IArchiveOpenCallback](./plugin-api-open-callback.md).
 
 ### Close
 ```C++
@@ -85,7 +85,7 @@ The size of the `indices` array.
 
 `[in] testMode`
 
-Indicates that archive must test the ability to extract the given items, without doing so.
+Indicates that archive must test the ability to extract the given items, without doing so. See [IArchiveExtractCallback](./plugin-api-extract-callback.md)
 
 `[in] extractCallback`
 

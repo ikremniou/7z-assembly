@@ -82,6 +82,7 @@ HRESULT SzeInArchive::Extract(
   }
 
   while (numItems-- > 0) {
+    extractCallback->PrepareOperation(NArchive::NExtract::NAskMode::kExtract);
     CMyComPtr<ISequentialOutStream> stream;
     extractCallback->GetStream(*indices, &stream, 0);
 
@@ -90,6 +91,8 @@ HRESULT SzeInArchive::Extract(
                   static_cast<UInt32>(items_[*indices].content.size()),
                   &processed);
     indices = indices + 1;
+    extractCallback->SetOperationResult(
+        NArchive::NExtract::NOperationResult::kOK);
   }
 
   return S_OK;
@@ -97,7 +100,12 @@ HRESULT SzeInArchive::Extract(
 
 HRESULT SzeInArchive::GetArchiveProperty(PROPID propID,
                                          PROPVARIANT* value) noexcept {
-  return S_OK;
+  switch (propID) {
+    case kpidReadOnly:
+      return utils::SetVariant(false, value);
+    default:
+      return S_OK;
+  }
 }
 
 HRESULT SzeInArchive::GetNumberOfProperties(UInt32* numProps) noexcept {
@@ -155,6 +163,7 @@ void SzeInArchive::WriteFilesToOutStream(ISequentialOutStream* outStream) {
 
 void SzeInArchive::UpdateItemsInMemItems(
     UInt32 numItems, IArchiveUpdateCallback* updateCallback) {
+  std::vector<File> new_items;
   for (UInt32 i = 0; i < numItems; i++) {
     Int32 newData;
     Int32 newProps;
@@ -162,6 +171,7 @@ void SzeInArchive::UpdateItemsInMemItems(
     HRESULT res = updateCallback->GetUpdateItemInfo(i, &newData, &newProps,
                                                     &indexInArchive);
     if (newData == 0 && newProps == 0) {
+      new_items.push_back(items_[indexInArchive]);
       continue;
     }
 
@@ -173,23 +183,26 @@ void SzeInArchive::UpdateItemsInMemItems(
 
     File file{};
     if (indexInArchive == -1) {
-      items_.push_back(file);
-      indexInArchive = static_cast<UInt32>(items_.size() - 1);
+      new_items.push_back(file);
+      indexInArchive = static_cast<UInt32>(new_items.size() - 1);
     }
 
     ArchiveReader reader(in_stream);
     if (newData) {
-      items_[indexInArchive].content.clear();
+      new_items[indexInArchive].content.clear();
       for (byte b : reader) {
-        items_[indexInArchive].content.push_back(b);
+        new_items[indexInArchive].content.push_back(b);
       }
     }
 
     if (newProps) {
       PROPVARIANT variant_path{};
       updateCallback->GetProperty(i, kpidPath, &variant_path);
-      items_[indexInArchive].path = std::string(utils::Ws2s(variant_path.bstrVal));
+      new_items[indexInArchive].path =
+          std::string(utils::Ws2s(variant_path.bstrVal));
     }
   }
+
+  items_ = std::move(new_items);
 }
 }  // namespace archive

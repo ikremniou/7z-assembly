@@ -30,14 +30,16 @@ HRESULT IOutArchive::UpdateItems(
 ) noexcept;
 ```
 
+Updates items in the archive. The plugin must write modified archive to the `outStream`.
+
 `[in] outStream`
 
-TBA
+The output stream to write modified archive to.
 
 `[in] numItems`
 
-TBA
+Number of items to update.
 
 `[in] updateCallback`
 
-TBA
+Update callback is used to get the content and properties of the modified items. See [IArchiveUpdateCallback](./plugin-api-update-callback.md).

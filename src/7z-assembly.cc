@@ -19,6 +19,7 @@ struct ArchiveHandler {
   const wchar_t* add_extension;
   UInt32 flags;
   char signature[2];
+  bool enable_update;
   void* (*in_factory)();
 };
 
@@ -29,6 +30,7 @@ const ArchiveHandler handlers[] = {
      L"",
      0,
      {0x53, 0x5A},
+     false,
      []() -> void* {
        return new archive::SzInArchive();
      }},
@@ -38,6 +40,7 @@ const ArchiveHandler handlers[] = {
      L"",
      NArcInfoFlags::kAltStreams,
      {0x53, 0x45},
+     true,
      []() -> void* {
        return new archive::SzeInArchive();
      }},
@@ -68,6 +71,7 @@ STDAPI_LIB GetHandlerProperty2(UInt32 formatIndex, PROPID propID,
     case NArchive::NHandlerPropID::kFlags:
       return utils::SetVariant(handlers[formatIndex].flags, value);
     case NArchive::NHandlerPropID::kUpdate:
+      return utils::SetVariant(handlers[formatIndex].enable_update, value);
     case NArchive::NHandlerPropID::kTimeFlags:
       return S_OK;
     case NArchive::NHandlerPropID::kSignature:

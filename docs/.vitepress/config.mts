@@ -27,6 +27,9 @@ export default defineConfig({
             { text: 'Plugin Interface', link: '/plugin-api-def' },
             { text: 'IInArchive', link: '/plugin-api-inarc' },
             { text: 'IOutArchive', link: '/plugin-api-outarc' },
+            { text: 'IArchiveOpenCallback', link: '/plugin-api-open-callback' },
+            { text: 'IArchiveExtractCallback', link: '/plugin-api-extract-callback' },
+            { text: 'IArchiveUpdateCallback', link: '/plugin-api-update-callback' },
         ]
       },
       {

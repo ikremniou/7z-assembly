@@ -75,6 +75,7 @@ HRESULT SzInArchive::Extract(
     IArchiveExtractCallback* extractCallback) noexcept {
   CMyComPtr<ISequentialOutStream> outStream;
   while (numItems-- > 0) {
+    extractCallback->PrepareOperation(NArchive::NExtract::NAskMode::kExtract);
     RINOK(extractCallback->GetStream(*indices, &outStream, 0));
     UInt32 size_processed;
     const char* content = files[*indices].content;
@@ -83,6 +84,8 @@ HRESULT SzInArchive::Extract(
                        &size_processed);
     }
     indices = indices + 1;
+    extractCallback->SetOperationResult(
+        NArchive::NExtract::NOperationResult::kOK);
   }
 
   return S_OK;

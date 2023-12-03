@@ -16,6 +16,6 @@ Documentation is hosted on [*GitHub Pages*](https://ikremniou.github.io/7z-assem
 
 
 Items in progress:
-- [ ] Implement the SZE archive
+- [x] Implement the SZE archive
 - [ ] Restructure documentation in the `Plugin Interface` section
 - [ ] Implement real-word example (probably for some zlib users like `rpa`)
