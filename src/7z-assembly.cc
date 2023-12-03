@@ -28,7 +28,7 @@ const ArchiveHandler handlers[] = {
      SzHandlerGuid,
      L"sz",
      L"",
-     0,
+     NArcInfoFlags::kByExtOnlyOpen,
      {0x53, 0x5A},
      false,
      []() -> void* {
@@ -38,7 +38,7 @@ const ArchiveHandler handlers[] = {
      SzeHandlerGuid,
      L"sze",
      L"",
-     NArcInfoFlags::kAltStreams,
+     NArcInfoFlags::kByExtOnlyOpen,
      {0x53, 0x45},
      true,
      []() -> void* {

@@ -170,25 +170,25 @@ void SzeInArchive::UpdateItemsInMemItems(
     UInt32 indexInArchive;
     HRESULT res = updateCallback->GetUpdateItemInfo(i, &newData, &newProps,
                                                     &indexInArchive);
-    if (newData == 0 && newProps == 0) {
+    if (indexInArchive != -1) {
       new_items.push_back(items_[indexInArchive]);
+    } else {
+      new_items.push_back(File{});
+    }
+    indexInArchive = static_cast<UInt32>(new_items.size() - 1);
+
+    if (newData == 0 && newProps == 0) {
       continue;
     }
 
-    CMyComPtr<ISequentialInStream> in_stream;
-    res = updateCallback->GetStream(i, &in_stream);
-    if (FAILED(res)) {
-      continue;
-    }
-
-    File file{};
-    if (indexInArchive == -1) {
-      new_items.push_back(file);
-      indexInArchive = static_cast<UInt32>(new_items.size() - 1);
-    }
-
-    ArchiveReader reader(in_stream);
     if (newData) {
+      CMyComPtr<ISequentialInStream> in_stream;
+      res = updateCallback->GetStream(i, &in_stream);
+      if (FAILED(res)) {
+        continue;
+      }
+
+      ArchiveReader reader(in_stream);
       new_items[indexInArchive].content.clear();
       for (byte b : reader) {
         new_items[indexInArchive].content.push_back(b);

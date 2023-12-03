@@ -23,6 +23,8 @@ HRESULT SzInArchive::Open(IInStream* stream,
                           IArchiveOpenCallback* openCallback) noexcept {
   char buffer[8];
   UInt32 processed = 0;
+  UInt64 seek_stub = 0;
+  stream->Seek(0, STREAM_SEEK_CUR, &seek_stub);
   stream->Read(buffer, sizeof(buffer), &processed);
   if (buffer[0] != 'S' && buffer[0] != 'Z') {
     return S_FALSE;
