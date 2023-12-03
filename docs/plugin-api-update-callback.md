@@ -32,7 +32,7 @@ This flag indicates whether the item contains new properties. `0` means that the
 
 The index of the item in the archive. If this value in `-1` then item is a new one and should be added to archive, otherwise existing item should be updated.
 
-### GetProperty
+## GetProperty
 ```C++
 HRESULT GetProperty(
     UInt32 index,
@@ -55,7 +55,7 @@ The property ID. See props defined in `ProgID.h` for details.
 
 The value of the property to set.
 
-### GetStream
+## GetStream
 ```C++
 HRESULT GetStream(
     UInt32 index,
@@ -73,7 +73,7 @@ The index of the item to update. Starts from 0 up to the `numOrItems` passed to 
 
 Input stream that can be used to read the data of the item.
 
-### SetOperationResult
+## SetOperationResult
 ```C++
 HRESULT SetOperationResult(
     Int32 operationResult

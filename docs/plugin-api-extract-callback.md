@@ -2,7 +2,7 @@
 
 This interface is used to extract items from the archive. See [IInArchive::Extract](./plugin-api-inarc.md#extract). It defines the following methods:
 
-### GetStream
+## GetStream
 ```C++
 HRESULT GetStream(
     UInt32 index,
@@ -25,7 +25,7 @@ The output stream to write item data to.
 
 If `askMode != NArchive::NExtract::NAskMode::kExtract` the callee is not allowed to write data to the stream.
 
-### PrepareOperation
+## PrepareOperation
 ```C++
 HRESULT PrepareOperation(
     Int32 askExtractMode
@@ -38,7 +38,7 @@ Should be called at the beginning of the extract of each item.
 
 Should be one of the `NArchive::NExtract::NAskMode::kTest` if `testMode` is true and `NArchive::NExtract::NAskMode::kExtract` otherwise. 
 
-### SetOperationResult
+## SetOperationResult
 ```C++
 HRESULT SetOperationResult(
     Int32 opRes

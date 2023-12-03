@@ -2,7 +2,7 @@
 
 `IOutArchive` allows archives to be modified. It should used in conjunction with `IInArchive`.
 
-### GetFileTimeType
+## GetFileTimeType
 
 ```C++
 HRESULT SzeInArchive::GetFileTimeType(
@@ -20,7 +20,7 @@ Starting from **22.00** can return NFileTimeType::EEnum::kNotDefined as any file
 
 The file time type from `NFileTimeType::EEnum` enum.
 
-### UpdateItems
+## UpdateItems
 
 ``` C++
 HRESULT IOutArchive::UpdateItems(

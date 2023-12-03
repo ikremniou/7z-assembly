@@ -2,7 +2,7 @@
 
 Use this interface to report back the progress of opening the archive. See [IInArchive::Open](./plugin-api-inarc.md#open). It defines the following methods:
 
-### SetTotal
+## SetTotal
 ```C++
 HRESULT SetTotal(
     UInt64 numItems
@@ -15,7 +15,7 @@ Use this method to set the total number of 'steps' to be processed. It can be th
 
 The total number of 'steps' to process.
 
-### SetCompleted
+## SetCompleted
 ```C++
 HRESULT SetCompleted(
     const UInt64 *completeValue

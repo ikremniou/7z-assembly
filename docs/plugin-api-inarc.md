@@ -9,7 +9,7 @@ public:
 };
 ```
 
-### Open
+## Open
 ```C++
 HRESULT IInArchive::Open(
     IInStream *stream,
@@ -33,7 +33,7 @@ If `*0`, the handler must check only current position as archive start
 
 The callback to report the progress of opening the archive. See [IArchiveOpenCallback](./plugin-api-open-callback.md).
 
-### Close
+## Close
 ```C++
 HRESULT IInArchive::Close() noexcept;
 ```
@@ -41,7 +41,7 @@ HRESULT IInArchive::Close() noexcept;
 Function called to close the archive. Dispose the resources allocated in `Open` function.
 
 
-### GetNumberOfItems 
+## GetNumberOfItems 
 ```C++
 HRESULT IInArchive::GetNumberOfItems(
     UInt32 *numItems
@@ -52,7 +52,7 @@ HRESULT IInArchive::GetNumberOfItems(
 
 Return the number of items(files, dirs) stored in archive. The index of the item will be used later to extract it or to get metadata about it.
 
-### GetProperty
+## GetProperty
 ```C++
 HRESULT IInArchive::GetProperty(
     UInt32 index,
@@ -61,9 +61,21 @@ HRESULT IInArchive::GetProperty(
 ) noexcept;
 ```
 
-This function must return the property of the particular item. Item is indexed using `GetNumberOfItems` function. The property ids can be located in `ProgID.h` file.
+This function must return the property of the particular item. Item is indexed using `GetNumberOfItems` function.
 
-### Extract
+`[in] index`
+
+Index of the item which property will be returned.
+
+`[in] propID`
+
+The id of the property. See props defined in `ProgID.h` for details.
+
+`[out] value`
+
+The value of the property to return.
+
+## Extract
 ```C++
 HRESULT IInArchive::Extract(
     const UInt32 *indices,
@@ -91,7 +103,7 @@ Indicates that archive must test the ability to extract the given items, without
 
 The callback to report the progress of extracting the items. Also, this callback can be used to query for the stream to write to.
 
-### GetArchiveProperty
+## GetArchiveProperty
 ```C++
 HRESULT IInArchive::GetArchiveProperty(
     PROPID propID,
@@ -109,7 +121,7 @@ The id of the property to query. Properties enum can be found in `ProgID.h`.
 
 The value to the property to required to return.
 
-### GetNumberOfProperties
+## GetNumberOfProperties
 ```C++
 HRESULT IInArchive::GetNumberOfProperties(
     UInt32 *numProps
@@ -130,7 +142,7 @@ If you return `0` rest 3 functions can safely return `E_NOTIMPL`.
 It is easy to confuse the `GetPropertyInfo` and `GetProperty` functions. So, `GetNumberOfProperties` is used for `GetPropertyInfo`, and `GetPropertyInfo` is used for the *display*(like giving names to the column in FileManager) and `GetProperty` is used by the plugin host to correctly work with files depending of their metadata.
 :::
 
-### GetPropertyInfo
+## GetPropertyInfo
 ```C++
 HRESULT IInArchive::GetPropertyInfo(
     UInt32 index,
@@ -158,7 +170,7 @@ The corresponding property id from `GetProperty` to link with the given name.
 
 The variant type(short) of the property.
 
-### GetNumberOfArchiveProperties 
+## GetNumberOfArchiveProperties 
 ```C++
 HRESULT IInArchive::GetNumberOfArchiveProperties(
     UInt32 *numProps
@@ -169,7 +181,7 @@ HRESULT IInArchive::GetNumberOfArchiveProperties(
 
 Return the number of the names properties you want display for the archive.
 
-### GetArchivePropertyInfo
+## GetArchivePropertyInfo
 ```C++
 HRESULT IInArchive::GetArchivePropertyInfo(
     PROPID propID,
