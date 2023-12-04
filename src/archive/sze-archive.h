@@ -6,6 +6,7 @@
 #include "../plugin/Export.h"
 
 namespace archive {
+// #region snippet
 class SzeInArchive : public CMyUnknownImp,
                      public IInArchive,
                      public IOutArchive {
@@ -18,12 +19,13 @@ class SzeInArchive : public CMyUnknownImp,
   };
 
   void WriteFilesToOutStream(ISequentialOutStream* outStream);
-  void UpdateItemsInMemItems(UInt32 numItems,
+  void UpdateItemsInMem(UInt32 numItems,
                              IArchiveUpdateCallback* updateCallback);
 
   UInt32 all_size_;
   std::vector<File> items_;
 };
+// #endregion snippet
 }  // namespace archive
 
 #endif  // ARCHIVE_SZE_ARCHIVE_H_

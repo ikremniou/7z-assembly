@@ -6,6 +6,7 @@
 
 namespace archive {
 
+// #region open
 HRESULT SzeInArchive::Open(IInStream* stream,
                            const UInt64* maxCheckStartPosition,
                            IArchiveOpenCallback* openCallback) noexcept {
@@ -51,6 +52,7 @@ HRESULT SzeInArchive::Open(IInStream* stream,
 
   return S_OK;
 }
+// #endregion open
 
 HRESULT SzeInArchive::Close() noexcept {
   return S_OK;
@@ -74,6 +76,7 @@ HRESULT SzeInArchive::GetProperty(UInt32 index, PROPID propID,
   return S_OK;
 }
 
+// #region extract 
 HRESULT SzeInArchive::Extract(
     const UInt32* indices, UInt32 numItems, Int32 testMode,
     IArchiveExtractCallback* extractCallback) noexcept {
@@ -97,6 +100,7 @@ HRESULT SzeInArchive::Extract(
 
   return S_OK;
 }
+// #endregion extract
 
 HRESULT SzeInArchive::GetArchiveProperty(PROPID propID,
                                          PROPVARIANT* value) noexcept {
@@ -113,14 +117,16 @@ HRESULT SzeInArchive::GetNumberOfProperties(UInt32* numProps) noexcept {
   return S_OK;
 }
 
+// #region get_property_info
 HRESULT SzeInArchive::GetPropertyInfo(UInt32 index, BSTR* name, PROPID* propID,
                                       VARTYPE* varType) noexcept {
 
-  *name = SysAllocString(L"Real size");
+  *name = SysAllocString(L"Sample");
   *propID = kpidSize;
   *varType = VT_UI8;
   return S_OK;
 }
+// #endregion get_property_info
 
 HRESULT SzeInArchive::GetNumberOfArchiveProperties(UInt32* numProps) noexcept {
   return S_OK;
@@ -132,19 +138,22 @@ HRESULT SzeInArchive::GetArchivePropertyInfo(UInt32 index, BSTR* name,
   return S_OK;
 }
 
+// #region update
 HRESULT SzeInArchive::UpdateItems(
     ISequentialOutStream* outStream, UInt32 numItems,
     IArchiveUpdateCallback* updateCallback) noexcept {
-  UpdateItemsInMemItems(numItems, updateCallback);
+  UpdateItemsInMem(numItems, updateCallback);
   WriteFilesToOutStream(outStream);
   return S_OK;
 }
+// #endregion update
 
 HRESULT SzeInArchive::GetFileTimeType(UInt32* type) noexcept {
   *type = NFileTimeType::EEnum::kNotDefined;
   return S_OK;
 }
 
+// #region write_files_to_out_stream
 void SzeInArchive::WriteFilesToOutStream(ISequentialOutStream* outStream) {
   UInt32 processed = 0;
   outStream->Write("SZ", 2, &processed);
@@ -160,8 +169,10 @@ void SzeInArchive::WriteFilesToOutStream(ISequentialOutStream* outStream) {
                      static_cast<UInt32>(file.content.size()), &processed);
   }
 }
+// #endregion write_files_to_out_stream
 
-void SzeInArchive::UpdateItemsInMemItems(
+// #region update_items_in_mem
+void SzeInArchive::UpdateItemsInMem(
     UInt32 numItems, IArchiveUpdateCallback* updateCallback) {
   std::vector<File> new_items;
   for (UInt32 i = 0; i < numItems; i++) {
@@ -205,4 +216,5 @@ void SzeInArchive::UpdateItemsInMemItems(
 
   items_ = std::move(new_items);
 }
+// #endregion update_items_in_mem
 }  // namespace archive

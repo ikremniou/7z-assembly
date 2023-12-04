@@ -18,6 +18,5 @@ STDAPI_LIB CreateDecoder(UInt32 index, const GUID* iid, void** outObject);
 STDAPI_LIB CreateEncoder(UInt32 index, const GUID* iid, void** outObject);
 STDAPI_LIB GetHashers(IHashers** hashers);
 STDAPI_LIB SetCodecs(ICompressCodecsInfo* compressCodecsInfo);
-STDAPI_LIB GetModuleProp(PROPID propID, PROPVARIANT* value);
 
 #endif  // LIB_ASSEMBLY_H_

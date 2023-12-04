@@ -4,6 +4,7 @@
 
 namespace archive {
 
+// #region files_def
 struct File {
   const wchar_t* path;
   bool is_dir;
@@ -18,29 +19,34 @@ std::array<File, 5> files = {{
     {L"child.sz", false, "any"},
 }};
 
+// #endregion files_def
+
+// #region open
 HRESULT SzInArchive::Open(IInStream* stream,
                           const UInt64* maxCheckStartPosition,
                           IArchiveOpenCallback* openCallback) noexcept {
   char buffer[8];
   UInt32 processed = 0;
-  UInt64 seek_stub = 0;
-  stream->Seek(0, STREAM_SEEK_CUR, &seek_stub);
   stream->Read(buffer, sizeof(buffer), &processed);
   if (buffer[0] != 'S' && buffer[0] != 'Z') {
     return S_FALSE;
   }
   return S_OK;
 }
+// #endregion open
 
 HRESULT SzInArchive::Close() noexcept {
   return S_OK;
 }
 
+// #region get_number_of_items
 HRESULT SzInArchive::GetNumberOfItems(UInt32* numItems) noexcept {
   *numItems = static_cast<UInt32>(std::size(files));
   return S_OK;
 }
+// #endregion get_number_of_items
 
+// #region get_property
 HRESULT SzInArchive::GetProperty(UInt32 index, PROPID propID,
                                  PROPVARIANT* value) noexcept {
   switch (propID) {
@@ -71,7 +77,9 @@ HRESULT SzInArchive::GetProperty(UInt32 index, PROPID propID,
     }
   }
 }
+// #endregion get_property
 
+// #region extract
 HRESULT SzInArchive::Extract(
     const UInt32* indices, UInt32 numItems, Int32 testMode,
     IArchiveExtractCallback* extractCallback) noexcept {
@@ -92,7 +100,9 @@ HRESULT SzInArchive::Extract(
 
   return S_OK;
 }
+// #endregion extract
 
+// #region get_archive_property
 HRESULT SzInArchive::GetArchiveProperty(PROPID propID,
                                         PROPVARIANT* value) noexcept {
   switch (propID) {
@@ -120,11 +130,14 @@ HRESULT SzInArchive::GetArchiveProperty(PROPID propID,
       return E_NOTIMPL;
   }
 }
+// #endregion get_archive_property
 
+// #region get_number_of_properties
 HRESULT SzInArchive::GetNumberOfProperties(UInt32* numProps) noexcept {
   *numProps = 0;
   return S_OK;
 }
+// #endregion get_number_of_properties
 
 HRESULT SzInArchive::GetPropertyInfo(UInt32 index, BSTR* name, PROPID* propID,
                                      VARTYPE* varType) noexcept {
